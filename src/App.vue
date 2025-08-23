@@ -1,0 +1,229 @@
+<template>
+  <div class="container mt-4">
+    <h1>Генератор рассадки студентов</h1>
+
+    <form @submit.prevent="generateSeating">
+      <h3>Студенты</h3>
+      <div v-for="(student, index) in request.students" :key="index" class="mb-3">
+        <div class="input-group">
+          <input v-model="student.name" type="text" class="form-control" placeholder="Имя студента" required>
+          <input v-model="student.preferredRows" type="text" class="form-control" placeholder="Предпочитаемые ряды (через запятую)">
+          <input v-model="student.preferredColumns" type="text" class="form-control" placeholder="Предпочитаемые столбцы (через запятую)">
+          <input v-model="student.medicalPreferredRow" type="text" class="form-control" placeholder="Медицинские ряды (через запятую)">
+          <input v-model="student.medicalPreferredColumn" type="text" class="form-control" placeholder="Медицинские столбцы (через запятую)">
+          <button type="button" class="btn btn-danger" @click="removeStudent(index)">Удалить</button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary mb-3" @click="addStudent">Добавить студента</button>
+
+      <h3>Предпочтения</h3>
+      <div v-for="(pref, index) in request.preferences" :key="'pref-' + index" class="input-group mb-2">
+        <select v-model="pref[0]" class="form-control">
+          <option v-for="student in request.students" :value="student.id">
+            {{ student.name || `Студент ${student.id}` }}
+          </option>
+        </select>
+        <select v-model="pref[1]" class="form-control">
+          <option v-for="student in request.students" :value="student.id">
+            {{ student.name || `Студент ${student.id}` }}
+          </option>
+        </select>
+        <button type="button" class="btn btn-danger" @click="request.preferences.splice(index, 1)">Удалить</button>
+      </div>
+      <button type="button" class="btn btn-primary mb-3" @click="addPreference">Добавить предпочтение</button>
+
+      <h3>Запрещённые пары</h3>
+      <div v-for="(forb, index) in request.forbidden" :key="'forb-' + index" class="input-group mb-2">
+        <select v-model="forb[0]" class="form-control">
+          <option v-for="student in request.students" :value="student.id">
+            {{ student.name || `Студент ${student.id}` }}
+          </option>
+        </select>
+        <select v-model="forb[1]" class="form-control">
+          <option v-for="student in request.students" :value="student.id">
+            {{ student.name || `Студент ${student.id}` }}
+          </option>
+        </select>
+        <button type="button" class="btn btn-danger" @click="request.forbidden.splice(index, 1)">Удалить</button>
+      </div>
+      <button type="button" class="btn btn-primary mb-3" @click="addForbidden">Добавить запрет</button>
+
+      <h3>Конфигурация класса</h3>
+      <div class="mb-3">
+        <label>Ряды:</label>
+        <input v-model.number="request.classConfig.rows" type="number" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label>Столбцы:</label>
+        <input v-model.number="request.classConfig.columns" type="number" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label>Тип парт:</label>
+        <select v-model="request.classConfig.deskType" class="form-control">
+          <option value="single">Одиночные</option>
+          <option value="double">Двойные</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-success">Сгенерировать рассадку</button>
+    </form>
+
+    <div v-if="response.length > 0" class="mt-4">
+      <h3>Результат рассадки</h3>
+      <p>Баллов набрано: {{ fitness }}</p>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Место</th>
+            <th>Ряд</th>
+            <th>Столбец</th>
+            <th>Студент</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="seat in response" :key="seat.SeatID">
+            <td>{{ seat.SeatID }}</td>
+            <td>{{ seat.Row }}</td>
+            <td>{{ seat.Column }}</td>
+            <td>{{ seat.Student }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+
+      <h4>Визуализация</h4>
+      <div class="classroom">
+        <div v-for="row in request.classConfig.rows" :key="row" class="row">
+          <div v-for="col in request.classConfig.columns" :key="col" class="seat" :class="{ 'double-desk': request.classConfig.deskType === 'double' && col % 2 === 0 }">
+            {{ getStudentName(row - 1, col - 1) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  data() {
+    return {
+      request: {
+        students: [
+          {
+            id: 0,
+            name: 'Алекс',
+            preferredRows: '0',
+            preferredColumns: '0',
+            medicalPreferredRow: '0',
+            medicalPreferredColumn: '',
+          },
+        ],
+        preferences: [[0, 1]],
+        forbidden: [[0, 2]],
+        classConfig: {
+          rows: 2,
+          columns: 2,
+          deskType: 'double',
+        },
+      },
+      preferencesInput: '',
+      forbiddenInput: '',
+      response: [],
+      error: '',
+    };
+  },
+  methods: {
+    addStudent() {
+      const newId = this.request.students.length;
+      this.request.students.push({
+        id: newId,
+        name: '',
+        preferredRows: '',
+        preferredColumns: '',
+        medicalPreferredRow: '',
+        medicalPreferredColumn: '',
+      });
+    },
+    addPreference() 
+    {
+
+    },
+    removeStudent(index) {
+      this.request.students.splice(index, 1);
+      // Обновляем ID
+      this.request.students.forEach((student, i) => {
+        student.id = i;
+      });
+    },
+    parseCommaSeparated(str) {
+      if (!str) return [];
+      return str.split(',').map(Number).filter(n => !isNaN(n));
+    },
+    parsePairs(str) {
+      if (!str) return [];
+      return str.split(';').map(pair => pair.split(',').map(Number).filter(n => !isNaN(n)));
+    },
+    async generateSeating() {
+      this.error = '';
+      this.response = [];
+
+      const requestData = {
+        students: this.request.students.map(student => ({
+          id: student.id,
+          name: student.name,
+          preferredRows: this.parseCommaSeparated(student.PreferredRows),
+          preferredColumns: this.parseCommaSeparated(student.PreferredColumns),
+          medicalPreferredRow: this.parseCommaSeparated(student.MedicalPreferredRows),
+          medicalPreferredColumn: this.parseCommaSeparated(student.MedicalPreferredColumns),
+        })),
+        preferences: this.parsePairs(this.preferencesInput),
+        forbidden: this.parsePairs(this.forbiddenInput),
+        classConfig: {
+          rows: this.request.classConfig.rows,
+          columns: this.request.classConfig.columns,
+        },
+      };
+
+      try {
+        const res = await axios.post('http://localhost:5000/generate-seating', requestData, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+        this.response = res.data.Seating || [];
+        this.fitness = res.data.Fitness || 0;
+        console.log('Received response:', res.data);
+      } catch (err) {
+        this.error = err.response?.data || 'Ошибка при генерации рассадки';
+        console.error(err);
+      }
+    },
+    getStudentName(row, col) {
+      const seat = this.response.find(s => s.Row === row && s.Column === col);
+      console.log(`Finding student for row=${row}, col=${col}:`, seat);
+      return seat ? seat.Student : '-';
+    },
+  },
+};
+</script>
+
+<style scoped>
+.classroom {
+  display: flex;
+  flex-direction: column;
+}
+.row {
+  display: flex;
+}
+.seat {
+  width: 100px;
+  height: 50px;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 5px;
+}
+</style>
