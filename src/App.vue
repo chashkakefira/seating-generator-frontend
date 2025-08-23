@@ -30,7 +30,7 @@
         </select>
         <button type="button" class="btn btn-danger" @click="request.preferences.splice(index, 1)">Удалить</button>
       </div>
-      <button type="button" class="btn btn-primary mb-3" @click="addPreference">Добавить предпочтение</button>
+      <button type="button" class="btn btn-primary mb-3" @click="request.preferences.push([0, 1])">Добавить предпочтение</button>
 
       <h3>Запрещённые пары</h3>
       <div v-for="(forb, index) in request.forbidden" :key="'forb-' + index" class="input-group mb-2">
@@ -46,7 +46,7 @@
         </select>
         <button type="button" class="btn btn-danger" @click="request.forbidden.splice(index, 1)">Удалить</button>
       </div>
-      <button type="button" class="btn btn-primary mb-3" @click="addForbidden">Добавить запрет</button>
+      <button type="button" class="btn btn-primary mb-3" @click="request.forbidden.push([0, 1])">Добавить запрет</button>
 
       <h3>Конфигурация класса</h3>
       <div class="mb-3">
@@ -76,8 +76,8 @@
           <tr>
             <th>Место</th>
             <th>Ряд</th>
-            <th>Столбец</th>
-            <th>Студент</th>
+            <th>Парта</th>
+            <th>Ученик</th>
           </tr>
         </thead>
         <tbody>
@@ -130,8 +130,8 @@ export default {
           deskType: 'double',
         },
       },
-      preferencesInput: '',
-      forbiddenInput: '',
+      preferencesInput: [0, 1],
+      forbiddenInput: [0, 1],
       response: [],
       error: '',
     };
@@ -148,10 +148,6 @@ export default {
         medicalPreferredColumn: '',
       });
     },
-    addPreference() 
-    {
-
-    },
     removeStudent(index) {
       this.request.students.splice(index, 1);
       // Обновляем ID
@@ -162,10 +158,6 @@ export default {
     parseCommaSeparated(str) {
       if (!str) return [];
       return str.split(',').map(Number).filter(n => !isNaN(n));
-    },
-    parsePairs(str) {
-      if (!str) return [];
-      return str.split(';').map(pair => pair.split(',').map(Number).filter(n => !isNaN(n)));
     },
     async generateSeating() {
       this.error = '';
@@ -180,8 +172,8 @@ export default {
           medicalPreferredRow: this.parseCommaSeparated(student.MedicalPreferredRows),
           medicalPreferredColumn: this.parseCommaSeparated(student.MedicalPreferredColumns),
         })),
-        preferences: this.parsePairs(this.preferencesInput),
-        forbidden: this.parsePairs(this.forbiddenInput),
+        preferences: this.preferences,
+        forbidden: this.forbidden,
         classConfig: {
           rows: this.request.classConfig.rows,
           columns: this.request.classConfig.columns,
@@ -225,5 +217,8 @@ export default {
   align-items: center;
   justify-content: center;
   margin: 5px;
+}
+.double-desk {
+  margin-right: 50px;
 }
 </style>
