@@ -1,16 +1,16 @@
 <template>
   <div class="container mt-4">
-    <h1>Генератор рассадки студентов</h1>
+    <h1>Генератор классной рассадки</h1>
 
     <form @submit.prevent="generateSeating">
-      <h3>Студенты</h3>
+      <h3>Ученики</h3>
       <div v-for="(student, index) in request.students" :key="index" class="mb-3">
         <div class="input-group">
-          <input v-model="student.name" type="text" class="form-control" placeholder="Имя студента" required>
+          <input v-model="student.name" type="text" class="form-control" placeholder="Имя ученика" required>
           <input v-model="student.preferredRows" type="text" class="form-control" placeholder="Предпочитаемые ряды (через запятую)">
-          <input v-model="student.preferredColumns" type="text" class="form-control" placeholder="Предпочитаемые столбцы (через запятую)">
+          <input v-model="student.preferredColumns" type="text" class="form-control" placeholder="Предпочитаемые парты (через запятую)">
           <input v-model="student.medicalPreferredRow" type="text" class="form-control" placeholder="Медицинские ряды (через запятую)">
-          <input v-model="student.medicalPreferredColumn" type="text" class="form-control" placeholder="Медицинские столбцы (через запятую)">
+          <input v-model="student.medicalPreferredColumn" type="text" class="form-control" placeholder="Медицинские парты (через запятую)">
           <button type="button" class="btn btn-danger" @click="removeStudent(index)">Удалить</button>
         </div>
       </div>
@@ -20,12 +20,12 @@
       <div v-for="(pref, index) in request.preferences" :key="'pref-' + index" class="input-group mb-2">
         <select v-model="pref[0]" class="form-control">
           <option v-for="student in request.students" :value="student.id">
-            {{ student.name || `Студент ${student.id}` }}
+            {{ student.name || `Ученик ${student.id}` }}
           </option>
         </select>
         <select v-model="pref[1]" class="form-control">
           <option v-for="student in request.students" :value="student.id">
-            {{ student.name || `Студент ${student.id}` }}
+            {{ student.name || `Ученик ${student.id}` }}
           </option>
         </select>
         <button type="button" class="btn btn-danger" @click="request.preferences.splice(index, 1)">Удалить</button>
@@ -36,12 +36,12 @@
       <div v-for="(forb, index) in request.forbidden" :key="'forb-' + index" class="input-group mb-2">
         <select v-model="forb[0]" class="form-control">
           <option v-for="student in request.students" :value="student.id">
-            {{ student.name || `Студент ${student.id}` }}
+            {{ student.name || `Ученик ${student.id}` }}
           </option>
         </select>
         <select v-model="forb[1]" class="form-control">
           <option v-for="student in request.students" :value="student.id">
-            {{ student.name || `Студент ${student.id}` }}
+            {{ student.name || `Ученик ${student.id}` }}
           </option>
         </select>
         <button type="button" class="btn btn-danger" @click="request.forbidden.splice(index, 1)">Удалить</button>
@@ -51,11 +51,11 @@
       <h3>Конфигурация класса</h3>
       <div class="mb-3">
         <label>Ряды:</label>
-        <input v-model.number="request.classConfig.rows" type="number" class="form-control" required>
+        <input v-model.number="request.classConfig.columns" type="number" class="form-control" required>
       </div>
       <div class="mb-3">
-        <label>Столбцы:</label>
-        <input v-model.number="request.classConfig.columns" type="number" class="form-control" required>
+        <label>Парт в ряду:</label>
+        <input v-model.number="request.classConfig.rows" type="number" class="form-control" required>
       </div>
       <div class="mb-3">
         <label>Тип парт:</label>
@@ -83,7 +83,7 @@
         <tbody>
           <tr v-for="seat in response" :key="seat.SeatID">
             <td>{{ seat.SeatID }}</td>
-            <td>{{ seat.Row }}</td>
+            <td>{{ Math.ceil(seat.Row / 2) }}</td>
             <td>{{ seat.Column }}</td>
             <td>{{ seat.Student }}</td>
           </tr>
@@ -94,7 +94,7 @@
       <h4>Визуализация</h4>
       <div class="classroom">
         <div v-for="row in request.classConfig.rows" :key="row" class="row">
-          <div v-for="col in request.classConfig.columns" :key="col" class="seat" :class="{ 'double-desk': request.classConfig.deskType === 'double' && col % 2 === 0 }">
+          <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat" :class="{ 'double-desk': request.classConfig.deskType === 'double' && col % 2 === 0 }">
             {{ getStudentName(row - 1, col - 1) }}
           </div>
         </div>
@@ -172,8 +172,8 @@ export default {
           medicalPreferredRow: this.parseCommaSeparated(student.MedicalPreferredRows),
           medicalPreferredColumn: this.parseCommaSeparated(student.MedicalPreferredColumns),
         })),
-        preferences: this.preferences,
-        forbidden: this.forbidden,
+        preferences: this.request.preferences,
+        forbidden: this.request.forbidden,
         classConfig: {
           rows: this.request.classConfig.rows,
           columns: this.request.classConfig.columns,
