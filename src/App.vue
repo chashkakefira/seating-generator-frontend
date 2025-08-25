@@ -92,9 +92,16 @@
 
 
       <h4>Визуализация</h4>
-      <div class="classroom">
+      <div v-if="request.classConfig.deskType === 'double'" class="classroom">
         <div v-for="row in request.classConfig.rows" :key="row" class="row">
-          <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat" :class="{ 'double-desk': request.classConfig.deskType === 'double' && col % 2 === 0 }">
+          <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat" :class="{ 'double-desk': (request.classConfig.deskType === 'double' && col % 2 === 0 )}">
+            {{ getStudentName(row - 1, col - 1) }}
+          </div>
+        </div>
+      </div>
+      <div v-else class="classroom">
+        <div v-for="row in request.classConfig.rows" :key="row" class="row">
+          <div v-for="col in request.classConfig.columns" :key="col" class="seat single-desk">
             {{ getStudentName(row - 1, col - 1) }}
           </div>
         </div>
@@ -176,7 +183,7 @@ export default {
         forbidden: this.request.forbidden,
         classConfig: {
           rows: this.request.classConfig.rows,
-          columns: this.request.classConfig.columns,
+          columns: (this.request.classConfig.deskType === "double") ? this.request.classConfig.columns * 2 : this.request.classConfig.columns,
         },
       };
 
@@ -220,5 +227,8 @@ export default {
 }
 .double-desk {
   margin-right: 50px;
+}
+.single-desk {
+  margin-right: 20px;
 }
 </style>
