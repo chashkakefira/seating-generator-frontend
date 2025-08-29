@@ -67,7 +67,6 @@
 
       <button type="submit" class="btn btn-success">Сгенерировать рассадку</button>
     </form>
-
     <div v-if="response.length > 0" class="mt-4">
       <h3>Результат рассадки</h3>
       <p>Баллов набрано: {{ fitness }}</p>
@@ -141,9 +140,67 @@ export default {
       forbiddenInput: [0, 1],
       response: [],
       error: '',
+      validateErrors: [],
     };
   },
   methods: {
+    validateInput() {
+      const error = [];
+      const { students, preferences, forbidden, classConfig } = this.request;
+
+      // Check classConfig
+      if (classConfig.rows <= 0) {
+        error.push('Количество парт в ряду должно быть положительным целым числом');
+      }
+      if (classConfig.columns <= 0) {
+        error.push('Количество рядов должно быть целым положительным числом');
+      }
+      const studentsIDs = new Map();
+      students.forEach((student, index) => {
+        studentsIDs.set(student.id, student.name);
+        // Check preferredColumns, preferredRows and medicalColumns, medicalRows
+        student.preferredRows.forEach((row) => {
+          if (row < 0 || row >= classConfig.rows) {
+            error.push("Недопустимый ряд ${row} для ученика ${student.name}");
+          }
+        })
+        student.preferredColumns.forEach((col) => {
+          if (col < 0 || col >= classConfig.columns) {
+            error.push("Недопустимая парта ${col} для ученика ${student.name}");
+          }
+        })
+        student.medicalPreferredColumn((col) => {
+          if (col < 0 || col >= classConfig.columns) {
+            error.push("Недопустимая парта ${col} для ученика ${student.name} в медицинских предпочтениях");
+          }
+        })
+        student.medicalPreferredRow((row) => {
+          if (row < 0 || row >= classConfig.rows) {
+            error.push("Недопустимый ряд ${row} для ученика ${student.name} в медицинских предпочтениях");
+          }
+        })
+      })
+      // Check preferences and medical for duplicates
+      preferences.forEach((pair) => {
+        if (pair[0] == pair[1]) {
+          error.push("${studentsIDs.get(pair[0])} не может хотеть сидеть сам с собой")
+        }
+      })
+      forbidden.forEach((pair) => {
+        if (pair[0] == pair[1]) {
+          error.push("${studentsIDs.get(pair[0])} не может не сидеть сам с собой")
+        }
+      })
+      // Check for conflicts between preferences and forbidden pairs
+      const preferencePairs = new Set(preferences.map(pair => '${pair[0]}, ${pair[1]}'));
+      forbidden.forEach((pair) => {
+        const key = '$pair[0], $pair[1]';
+        if (preferencePairs.has(key)) {
+          error.push('Конфликт между предпочтительными и запрещенными парами: пара ${studentsIDs.get(pair[0]), ${studentIDs.get(pair[1])}}');
+        }
+      })
+      return error;
+    },
     addStudent() {
       const newId = this.request.students.length;
       this.request.students.push({
@@ -157,7 +214,6 @@ export default {
     },
     removeStudent(index) {
       this.request.students.splice(index, 1);
-      // Обновляем ID
       this.request.students.forEach((student, i) => {
         student.id = i;
       });
@@ -168,6 +224,12 @@ export default {
     },
     async generateSeating() {
       this.error = '';
+      const validationErrors = this.validateInput();
+      if (validationErrors.length) {
+        this.error = 'Найдены ошибки во входных данных. Исправьте их, пожалуйста';
+        this.validationErrors = validationErrors;
+        return ;
+      }
       this.response = [];
 
       const requestData = {
