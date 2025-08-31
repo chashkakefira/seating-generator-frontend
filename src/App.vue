@@ -74,7 +74,7 @@
       <h4>Визуализация</h4>
       <div v-if="request.classConfig.deskType === 'double'" class="classroom">
         <div v-for="row in request.classConfig.rows" :key="row" class="row">
-          <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat" :class="{ 'double-desk': (request.classConfig.deskType === 'double' && col % 2 === 0 )}">
+          <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat" :class="{ 'double-desk': (request.classConfig.deskType === 'double' && col % 2 === 0 ), 'ignored' : (this.ignored.includes(row - 1, col - 1))}">
             {{ getStudentName(row - 1, col - 1) }}
           </div>
         </div>
@@ -241,17 +241,19 @@ export default {
         });
         this.response = res.data.Seating || [];
         this.fitness = res.data.Fitness || 0;
-        console.log('Received response:', res.data);
+        this.ignored = res.data.Ignored || [];
       } catch (err) {
         this.error = err.response?.data || 'Ошибка при генерации рассадки';
-        console.error(err);
       }
     },
     getStudentName(row, col) {
       const seat = this.response.find(s => s.Row === row && s.Column === col);
-      console.log(`Finding student for row=${row}, col=${col}:`, seat);
       return seat ? seat.Student : '-';
     },
+    getStudentID(row, col) {
+      const seat = this.response.find(s => s.Row === row && s.Column === col);
+      return seat ? seat.id : '-';
+    }
   },
 };
 </script>
@@ -278,5 +280,8 @@ export default {
 }
 .single-desk {
   margin-right: 20px;
+}
+.ignored {
+  color: red;
 }
 </style>
