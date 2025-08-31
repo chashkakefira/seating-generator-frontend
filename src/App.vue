@@ -70,25 +70,6 @@
     <div v-if="response.length > 0" class="mt-4">
       <h3>Результат рассадки</h3>
       <p>Баллов набрано: {{ fitness }}</p>
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Место</th>
-            <th>Ряд</th>
-            <th>Парта</th>
-            <th>Ученик</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="seat in response" :key="seat.SeatID">
-            <td>{{ seat.SeatID }}</td>
-            <td>{{ Math.ceil(seat.Row / 2) }}</td>
-            <td>{{ seat.Column }}</td>
-            <td>{{ seat.Student }}</td>
-          </tr>
-        </tbody>
-      </table>
-
 
       <h4>Визуализация</h4>
       <div v-if="request.classConfig.deskType === 'double'" class="classroom">
@@ -241,10 +222,10 @@ export default {
         students: this.request.students.map(student => ({
           id: student.id,
           name: student.name,
-          preferredRows: this.parseCommaSeparated(student.PreferredRows),
-          preferredColumns: this.parseCommaSeparated(student.PreferredColumns),
-          medicalPreferredRow: this.parseCommaSeparated(student.MedicalPreferredRows),
-          medicalPreferredColumn: this.parseCommaSeparated(student.MedicalPreferredColumns),
+          preferredRows: this.parseCommaSeparated(student.preferredRows),
+          preferredColumns: this.parseCommaSeparated(student.preferredColumns),
+          medicalPreferredRow: this.parseCommaSeparated(student.medicalPreferredRow),
+          medicalPreferredColumn: this.parseCommaSeparated(student.medicalPreferredColumn),
         })),
         preferences: this.request.preferences,
         forbidden: this.request.forbidden,
