@@ -7,10 +7,10 @@
       <div v-for="(student, index) in request.students" :key="index" class="mb-3">
         <div class="input-group">
           <input v-model="student.name" type="text" class="form-control" placeholder="Имя ученика" required>
-          <input v-model="student.preferredRows" type="text" class="form-control" placeholder="Предпочитаемые ряды (через запятую)">
-          <input v-model="student.preferredColumns" type="text" class="form-control" placeholder="Предпочитаемые парты (через запятую)">
-          <input v-model="student.medicalPreferredRow" type="text" class="form-control" placeholder="Медицинские ряды (через запятую)">
-          <input v-model="student.medicalPreferredColumn" type="text" class="form-control" placeholder="Медицинские парты (через запятую)">
+          <input v-model="student.preferredColumns" type="text" class="form-control" placeholder="Предпочитаемые ряды (через запятую)">
+          <input v-model="student.preferredRows" type="text" class="form-control" placeholder="Предпочитаемые парты (через запятую)">
+          <input v-model="student.medicalPreferredColumn" type="text" class="form-control" placeholder="Медицинские ряды (через запятую)">
+          <input v-model="student.medicalPreferredRow" type="text" class="form-control" placeholder="Медицинские парты (через запятую)">
           <button type="button" class="btn btn-danger" @click="removeStudent(index)">Удалить</button>
         </div>
       </div>
@@ -224,8 +224,8 @@ export default {
           name: student.name,
           preferredRows: this.parseCommaSeparated(student.preferredRows),
           preferredColumns: this.parseCommaSeparated(student.preferredColumns),
-          medicalPreferredRow: this.parseCommaSeparated(student.medicalPreferredRow),
-          medicalPreferredColumn: this.parseCommaSeparated(student.medicalPreferredColumn),
+          medicalPreferredRows: this.parseCommaSeparated(student.medicalPreferredRow),
+          medicalPreferredColumns: this.parseCommaSeparated(student.medicalPreferredColumn),
         })),
         preferences: this.request.preferences,
         forbidden: this.request.forbidden,
