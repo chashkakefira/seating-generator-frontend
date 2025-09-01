@@ -74,7 +74,7 @@
       <h4>Визуализация</h4>
       <div v-if="request.classConfig.deskType === 'double'" class="classroom">
         <div v-for="row in request.classConfig.rows" :key="row" class="row">
-          <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat" :class="{ 'double-desk': (request.classConfig.deskType === 'double' && col % 2 === 0 ), 'ignored' : (this.ignored.includes(row - 1, col - 1))}">
+          <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat" :class="{ 'double-desk': (request.classConfig.deskType === 'double' && col % 2 === 0 ), 'ignored' : (this.ignored.includes(getStudentID(row - 1, col - 1)))}">
             {{ getStudentName(row - 1, col - 1) }}
           </div>
         </div>
@@ -252,7 +252,8 @@ export default {
     },
     getStudentID(row, col) {
       const seat = this.response.find(s => s.Row === row && s.Column === col);
-      return seat ? seat.id : '-';
+      console.log(`${seat ? seat.StudentID : '-'}`)
+      return seat ? seat.StudentID : '-';
     }
   },
 };
