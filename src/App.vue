@@ -108,9 +108,25 @@ export default {
           {
             id: 0,
             name: 'Алекс',
-            preferredRows: '0',
-            preferredColumns: '0',
-            medicalPreferredRow: '0',
+            preferredRows: '1',
+            preferredColumns: '1',
+            medicalPreferredRow: '1',
+            medicalPreferredColumn: '',
+          },
+          {
+            id: 1,
+            name: 'Иван',
+            preferredRows: '',
+            preferredColumns: '',
+            medicalPreferredRow: '',
+            medicalPreferredColumn: '',
+          },
+          {
+            id: 2,
+            name: 'Анна',
+            preferredRows: '',
+            preferredColumns: '',
+            medicalPreferredRow: '',
             medicalPreferredColumn: '',
           },
         ],
@@ -151,12 +167,12 @@ export default {
           }
         })
         this.parseCommaSeparated(student.preferredColumns).forEach((col) => {
-          if (col < 0 || col >= classConfig.columns) {
+          if (col < 0 || col >= classConfig.columns * 2) {
             error.push(`Недопустимая парта ${col} для ученика ${student.name}`);
           }
         })
         this.parseCommaSeparated(student.medicalPreferredColumn).forEach((col) => {
-          if (col < 0 || col >= classConfig.columns) {
+          if (col < 0 || col >= classConfig.columns * 2) {
             error.push(`Недопустимая парта ${col} для ученика ${student.name} в медицинских предпочтениях`);
           }
         })
@@ -206,7 +222,7 @@ export default {
     },
     parseCommaSeparated(str) {
       if (!str) return [];
-      return str.split(',').map(Number).filter(n => !isNaN(n));
+      return str.split(',').map(Number).filter(n => !isNaN(n)).map(n => n - 1);
     },
     async generateSeating() {
       this.error = '';
