@@ -72,6 +72,7 @@
       <div v-if="validateErrors.length > 0" class="alert alert-danger mt-3">
         <p v-for="error in validateErrors">{{ error }}</p>
       </div>
+    </div>
     <div v-if="response.length > 0" class="mt-4">
       <h3>Результат рассадки</h3>
       <p>Баллов набрано: {{ fitness }}</p>
@@ -107,7 +108,6 @@
           </div>
       </div>
       </div>
-    </div>
 </template>
 
 <script>
