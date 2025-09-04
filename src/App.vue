@@ -76,7 +76,7 @@
         <div class="row header-row">
           <div class="seat-label" ></div>
           <!--Not working-->
-          <div v-for="col in request.classConfig.columns * 2" :key="'header-' + col" class="seat-label" :class = "{ 'double-desk': col % 2 === 0 }">
+          <div v-for="col in request.classConfig.columns * 2" :key="'header-' + col" class="seat-label" :class = "{ 'desig': col % 2 === 0 }">
             {{ col }}
           </div>
         </div>
@@ -329,5 +329,8 @@ export default {
 }
 .header-row {
   margin-bottom: 10px;
+}
+.desig {
+  margin-right: 50px;
 }
 </style>
