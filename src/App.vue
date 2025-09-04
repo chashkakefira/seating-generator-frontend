@@ -70,42 +70,38 @@
     <div v-if="response.length > 0" class="mt-4">
       <h3>Результат рассадки</h3>
       <p>Баллов набрано: {{ fitness }}</p>
-
-      <h4>Визуализация</h4>
-      <div v-if="request.classConfig.deskType === 'double'" class="classroom">
-        <div v-for="row in request.classConfig.rows" :key="row" class="row">
-          <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat" :class="{ 'double-desk': (request.classConfig.deskType === 'double' && col % 2 === 0 ), 'ignored' : (this.ignored.includes(getStudentID(row - 1, col - 1)))}">
-            {{ getStudentName(row - 1, col - 1) }}
-          </div>
-        </div>
-      </div>
-      <div v-else class="classroom">
-        <div v-for="row in request.classConfig.rows" :key="row" class="row">
-          <div v-for="col in request.classConfig.columns" :key="col" class="seat single-desk">
-            {{ getStudentName(row - 1, col - 1) }}
-          </div>
-        </div>
-      </div>
     </div>
-
-    <div v-else>
-      <h4>Визуализация</h4>
-      <div v-if="request.classConfig.deskType === 'double'" class="classroom">
-        <div v-for="row in request.classConfig.rows" :key="row" class="row">
-          <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat" :class="{ 'double-desk': (request.classConfig.deskType === 'double' && col % 2 === 0 )}">
-            -
+    <h4>Визуализация</h4>
+    <div v-if="request.classConfig.deskType === 'double'" class="classroom">
+        <div class="row header-row">
+          <div class="seat-label" ></div>
+          <!--Not working-->
+          <div v-for="col in request.classConfig.columns * 2" :key="'header-' + col" class="seat-label" :class = "{ 'double-desk': col % 2 === 0 }">
+            {{ col }}
           </div>
         </div>
+          <div v-for="row in request.classConfig.rows" :key="row" class="row">
+            <div class="seat-label">{{ row }}</div>
+            <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat" :class="{ 'double-desk': request.classConfig.deskType === 'double' && col % 2 === 0, 'ignored': ignored.includes(getStudentID(row - 1, col - 1)) }">
+              {{ getStudentName(row - 1, col - 1) || '-' }}
+            </div>
+          </div>
       </div>
-      <div v-else class="classroom">
-        <div v-for="row in request.classConfig.rows" :key="row" class="row">
-          <div v-for="col in request.classConfig.columns" :key="col" class="seat single-desk">
-            -
+        <div v-else class="classroom">
+          <div class="row header-row">
+          <div class="seat-label" ></div>
+          <div v-for="col in request.classConfig.columns" :key="'header-' + col" class="seat-label">
+            {{ col }}
           </div>
         </div>
+          <div v-for="row in request.classConfig.rows" :key="row" class="row">
+            <div class="seat-label">{{ row }}</div>
+            <div v-for="col in request.classConfig.columns" :key="col" class="seat" :class="{'ignored': ignored.includes(getStudentID(row - 1, col - 1)) }">
+              {{ getStudentName(row - 1, col - 1) || '-' }}
+            </div>
+          </div>
       </div>
-    </div>
-    </div>
+      </div>
 
     <div v-if="error" class="alert alert-danger mt-3">
       {{ error }}
@@ -161,6 +157,7 @@ export default {
       response: [],
       error: '',
       validateErrors: [],
+      ignored: [],
     };
   },
   methods: {
@@ -318,5 +315,19 @@ export default {
 }
 .ignored {
   color: red;
+}
+.seat-label {
+  width: 100px;
+  height: 50px;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 5px;
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+.header-row {
+  margin-bottom: 10px;
 }
 </style>
