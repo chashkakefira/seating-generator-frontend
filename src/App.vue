@@ -67,22 +67,22 @@
       <h2>Настройки генетического алгоритма</h2>
       <p>Приоритеты параметров оценивания (от наивысшего к наименьшему):</p>
       <div class="input-group mb-4">
-        <select v-model="priority[3]" class="form-control">
+        <select v-model="request.priority[3]" class="form-control">
           <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
             {{ pr }}
           </option>
         </select>
-        <select v-model="priority[2]" class="form-control">
+        <select v-model="request.priority[2]" class="form-control">
           <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
             {{ pr }}
           </option>
         </select>
-        <select v-model="priority[1]" class="form-control">
+        <select v-model="request.priority[1]" class="form-control">
           <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
             {{ pr }}
           </option>
         </select>
-        <select v-model="priority[0]" class="form-control">
+        <select v-model="request.priority[0]" class="form-control">
           <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
             {{ pr }}
           </option>
@@ -90,17 +90,18 @@
       </div>
         <div class="mb-3">
           <label>Размер популяции</label>
-          <input v-model.number="popSize" type="number" class="form-control" required></input>
+          <input v-model.number="request.popSize" type="number" class="form-control" required></input>
         </div>
         <div class="mb-3">
           <label>Количество поколений</label>
-          <input v-model.number="generations" type="number" class="form-control" required></input>
+          <input v-model.number="request.generations" type="number" class="form-control" required></input>
         </div>
         <div class="mb-3">
           <label>Шанс кроссинговера</label>
-          <input v-model.number="crossOverChance" type="float" class="form-control" required></input>
+          <input v-model.number="request.crossOverChance" type="float" class="form-control" required></input>
         </div>
       <button type="submit" class="btn btn-success">Сгенерировать рассадку</button>
+      <button type="button" class="btn btn-warning" @click="clearData">Очистить данные</button>
     </form>
     <div v-if="error" class="alert alert-danger mt-3">
       {{ error }}
@@ -185,6 +186,10 @@ export default {
           columns: 2,
           deskType: 'double',
         },
+      priority: [3, 2, 1, 0],
+      popSize: 300,
+      generations: 400,
+      crossOverChance: 0.3,
       },
       preferencesInput: [0, 1],
       forbiddenInput: [0, 1],
@@ -192,12 +197,31 @@ export default {
       error: '',
       validateErrors: [],
       ignored: [],
-      priority: [3, 2, 1, 0],
-      popSize: 300,
-      generations: 400,
-      crossOverChance: 0.3,
       priorities: ['Медицинские парты и ряды', 'Предпочитаемые парты и ряды', 'Запрещенные пары', 'Предпочтения учеников по парам']
     };
+  },
+  created(){
+    const savedData = localStorage.getItem('seatingRequest');
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      this.request = {
+        ...parsedData,
+        students: parsedData.students || [],
+        preferences: parsedData.preferences || [],
+        forbidden: parsedData.forbidden || [],
+        classConfig: parsedData.classConfig || this.request.classConfig,
+      };
+      this.request.popSize = parsedData.popSize || 300;
+      this.request.generations = parsedData.generations || 400;
+      this.request.crossOverChance = parsedData.crossOverChance || 0.3;
+      this.request.priority = parsedData.priority || [3, 2, 1, 0];
+    } else {
+      this.addStudent();
+      this.popSize = 300;
+      this.generations = 400;
+      this.crossOverChance = 0.3;
+      this.request.priority = [3, 2, 1, 0];
+    }
   },
   methods: {
     validateInput() {
@@ -256,17 +280,17 @@ export default {
         }
       })
       // Check popSize, generations, crossOverChance
-      if (this.popsize < 2 || this.popSize > 600) {
+      if (this.request.popsize < 2 || this.request.popSize > 600) {
         error.push(`Размер популяции должно быть целым положительным числом не меньше 2 и не больше 600`);
       }
-      if (this.generations < 2 || this.generations > 600) {
+      if (this.request.generations < 2 || this.request.generations > 600) {
         error.push(`Количество поколений должно быть целым положительным числом не меньше 2 и не больше 600`);
       }
-      if (this.crossOverChance < 0 || this.crossOverChance > 1) {
+      if (this.request.crossOverChance < 0 || this.request.crossOverChance > 1) {
         error.push(`Шанс кроссинговера должен лежать в диапазоне (0, 1]`)
       }
       // Check priorities
-      if (!this.areAllElementsUnique(this.priority)) {
+      if (!this.areAllElementsUnique(this.request.priority)) {
         error.push(`Повторяющиеся элементы в приоритетах параметров оценивания`)
       }
       return error;
@@ -317,10 +341,10 @@ export default {
           rows: this.request.classConfig.rows,
           columns: (this.request.classConfig.deskType === "double") ? this.request.classConfig.columns * 2 : this.request.classConfig.columns,
         },
-        popSize: this.popSize,
-        generations: this.generations,
-        crossOverChance: this.crossOverChance,
-        priority: this.priority,
+        popSize: this.request.popSize,
+        generations: this.request.generations,
+        crossOverChance: this.request.crossOverChance,
+        priority: this.request.priority,
       };
 
       try {
@@ -345,7 +369,36 @@ export default {
     },
     areAllElementsUnique (arr) {
       return new Set(arr).size === arr.length;
+    },
+    saveData() {
+      localStorage.setItem('seatingRequest', JSON.stringify(this.request));
+    },
+    clearData() {
+      localStorage.removeItem('seatingRequest');
+      this.request = {
+        students: [],
+        preferences: [],
+        forbidden: [],
+        classConfig: {
+          rows: 2,
+          columns: 2,
+          deskType: 'double',
+        },
+        popSize: 300,
+        generations: 400,
+        crossOverChance: 0.3,
+        priority: [3, 2, 1, 0],
+      };
+      this.addStudent();
     }
+  },
+  watch: {
+    'request' : {
+      handler() {
+        this.saveData();
+      },
+      deep: true,
+    },
   },
 };
 </script>
