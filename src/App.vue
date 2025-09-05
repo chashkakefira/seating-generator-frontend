@@ -64,7 +64,42 @@
           <option value="double">Двойные</option>
         </select>
       </div>
-
+      <h2>Настройки генетического алгоритма</h2>
+      <p>Приоритеты параметров оценивания (от наивысшего к наименьшему):</p>
+      <div class="input-group mb-4">
+        <select v-model="priority[3]" class="form-control">
+          <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
+            {{ pr }}
+          </option>
+        </select>
+        <select v-model="priority[2]" class="form-control">
+          <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
+            {{ pr }}
+          </option>
+        </select>
+        <select v-model="priority[1]" class="form-control">
+          <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
+            {{ pr }}
+          </option>
+        </select>
+        <select v-model="priority[0]" class="form-control">
+          <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
+            {{ pr }}
+          </option>
+        </select>
+      </div>
+        <div class="mb-3">
+          <label>Размер популяции</label>
+          <input v-model.number="popSize" type="number" class="form-control" required></input>
+        </div>
+        <div class="mb-3">
+          <label>Количество поколений</label>
+          <input v-model.number="generations" type="number" class="form-control" required></input>
+        </div>
+        <div class="mb-3">
+          <label>Шанс кроссинговера</label>
+          <input v-model.number="crossOverChance" type="float" class="form-control" required></input>
+        </div>
       <button type="submit" class="btn btn-success">Сгенерировать рассадку</button>
     </form>
     <div v-if="error" class="alert alert-danger mt-3">
@@ -157,6 +192,11 @@ export default {
       error: '',
       validateErrors: [],
       ignored: [],
+      priority: [3, 2, 1, 0],
+      popSize: 300,
+      generations: 400,
+      crossOverChance: 0.3,
+      priorities: ['Медицинские парты и ряды', 'Предпочитаемые парты и ряды', 'Запрещенные пары', 'Предпочтения учеников по парам']
     };
   },
   methods: {
@@ -215,6 +255,20 @@ export default {
           error.push(`Конфликт между предпочтительными и запрещенными парами: пара ${studentsIDs.get(pair[0])}, ${studentsIDs.get(pair[1])}`);
         }
       })
+      // Check popSize, generations, crossOverChance
+      if (this.popsize < 2 || this.popSize > 600) {
+        error.push(`Размер популяции должно быть целым положительным числом не меньше 2 и не больше 600`);
+      }
+      if (this.generations < 2 || this.generations > 600) {
+        error.push(`Количество поколений должно быть целым положительным числом не меньше 2 и не больше 600`);
+      }
+      if (this.crossOverChance < 0 || this.crossOverChance > 1) {
+        error.push(`Шанс кроссинговера должен лежать в диапазоне (0, 1]`)
+      }
+      // Check priorities
+      if (!this.areAllElementsUnique(this.priority)) {
+        error.push(`Повторяющиеся элементы в приоритетах параметров оценивания`)
+      }
       return error;
     },
     addStudent() {
@@ -263,6 +317,10 @@ export default {
           rows: this.request.classConfig.rows,
           columns: (this.request.classConfig.deskType === "double") ? this.request.classConfig.columns * 2 : this.request.classConfig.columns,
         },
+        popSize: this.popSize,
+        generations: this.generations,
+        crossOverChance: this.crossOverChance,
+        priority: this.priority,
       };
 
       try {
@@ -284,6 +342,9 @@ export default {
       const seat = this.response.find(s => s.Row === row && s.Column === col);
       console.log(`${seat ? seat.StudentID : '-'}`)
       return seat ? seat.StudentID : '-';
+    },
+    areAllElementsUnique (arr) {
+      return new Set(arr).size === arr.length;
     }
   },
 };
