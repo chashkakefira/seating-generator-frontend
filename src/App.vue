@@ -280,7 +280,7 @@ export default {
         }
       })
       // Check popSize, generations, crossOverChance
-      if (this.request.popsize < 2 || this.request.popSize > 600) {
+      if (this.request.popSize < 2 || this.request.popSize > 600) {
         error.push(`Размер популяции должно быть целым положительным числом не меньше 2 и не больше 600`);
       }
       if (this.request.generations < 2 || this.request.generations > 600) {
