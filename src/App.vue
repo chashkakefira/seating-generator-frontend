@@ -102,7 +102,15 @@
         </div>
       <button type="submit" class="btn btn-success">Сгенерировать рассадку</button>
       <button type="button" class="btn btn-warning" @click="clearData">Очистить данные</button>
+      <button type="button" class="btn btn-success" @click="saveSeating">Сохранить рассадку</button>
     </form>
+    <div v-if="savedSeatings.length > 0" class="mt-4">
+      <h3>Сохраненные рассадки</h3>
+      <div v-for="(seating, index) in savedSeatings">
+        <button class="btn btn-secondary mr-2" @click="loadSeating(index)">{{ seating.timestamp }}</button>
+        <button class="btn btn-danger mr-2" @click="deleteSeating(index)">Удалить рассадку</button>
+      </div>
+    </div>
     <div v-if="error" class="alert alert-danger mt-3">
       {{ error }}
       <div v-if="validateErrors.length > 0" class="alert alert-danger mt-3">
@@ -117,7 +125,6 @@
     <div v-if="request.classConfig.deskType === 'double'" class="classroom">
         <div class="row header-row">
           <div class="seat-label" ></div>
-          <!--Not working-->
           <div v-for="col in request.classConfig.columns * 2" :key="'header-' + col" class="seat-label" :class = "{ 'desig': col % 2 === 0 }">
             {{ col }}
           </div>
@@ -197,30 +204,14 @@ export default {
       error: '',
       validateErrors: [],
       ignored: [],
-      priorities: ['Медицинские парты и ряды', 'Предпочитаемые парты и ряды', 'Запрещенные пары', 'Предпочтения учеников по парам']
+      priorities: ['Медицинские парты и ряды', 'Предпочитаемые парты и ряды', 'Запрещенные пары', 'Предпочтения учеников по парам'],
+      savedSeatings: [],
     };
   },
   created(){
-    const savedData = localStorage.getItem('seatingRequest');
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      this.request = {
-        ...parsedData,
-        students: parsedData.students || [],
-        preferences: parsedData.preferences || [],
-        forbidden: parsedData.forbidden || [],
-        classConfig: parsedData.classConfig || this.request.classConfig,
-      };
-      this.request.popSize = parsedData.popSize || 300;
-      this.request.generations = parsedData.generations || 400;
-      this.request.crossOverChance = parsedData.crossOverChance || 0.3;
-      this.request.priority = parsedData.priority || [3, 2, 1, 0];
-    } else {
-      this.addStudent();
-      this.popSize = 300;
-      this.generations = 400;
-      this.crossOverChance = 0.3;
-      this.request.priority = [3, 2, 1, 0];
+    const saved = localStorage.getItem('savedSeatings');
+    if (saved) {
+      this.savedSeatings = JSON.parse(saved);
     }
   },
   methods: {
@@ -364,40 +355,36 @@ export default {
     },
     getStudentID(row, col) {
       const seat = this.response.find(s => s.Row === row && s.Column === col);
-      console.log(`${seat ? seat.StudentID : '-'}`)
       return seat ? seat.StudentID : '-';
     },
     areAllElementsUnique (arr) {
       return new Set(arr).size === arr.length;
     },
-    saveData() {
-      localStorage.setItem('seatingRequest', JSON.stringify(this.request));
+    saveSeating() {
+      if (this.response.length > 0) {
+        const seatingData = {
+          timestamp: new Date().toISOString(),
+          request: JSON.parse(JSON.stringify(this.request)),
+          response: [...this.response],
+          fitness: this.fitness,
+          ignored: [...this.ignored],
+        };
+        this.savedSeatings.push(seatingData);
+        localStorage.setItem('savedSeatings', JSON.stringify(this.savedSeatings));
+      } else {
+        this.error.push("Чтобы сохранить рассадку, сначала сгенерируйте её");
+      }
     },
-    clearData() {
-      localStorage.removeItem('seatingRequest');
-      this.request = {
-        students: [],
-        preferences: [],
-        forbidden: [],
-        classConfig: {
-          rows: 2,
-          columns: 2,
-          deskType: 'double',
-        },
-        popSize: 300,
-        generations: 400,
-        crossOverChance: 0.3,
-        priority: [3, 2, 1, 0],
-      };
-      this.addStudent();
-    }
-  },
-  watch: {
-    'request' : {
-      handler() {
-        this.saveData();
-      },
-      deep: true,
+    loadSeating(index) {
+      const seating = this.savedSeatings[index];
+      this.request = JSON.parse(JSON.stringify(seating.request));
+      this.response = [...seating.response];
+      this.fitness = seating.fitness;
+      this.ignored = [...seating.ignored];
+    },
+    deleteSeating(index) {
+      this.savedSeatings.splice(index, 1);
+      localStorage.setItem('savedSeatings', JSON.stringify(this.savedSeatings));
     },
   },
 };
