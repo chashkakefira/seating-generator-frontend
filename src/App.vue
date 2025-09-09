@@ -148,6 +148,7 @@
 
 <script>
 import axios from 'axios';
+import env from 'process';
 
 export default {
   data() {
@@ -348,7 +349,7 @@ export default {
       };
 
       try {
-        const res = await axios.post('http://localhost:5000/generate-seating', requestData, {
+        const res = await axios.post(import.meta.env.VITE_API_URL || 'http://localhost:5000', requestData, {
           headers: { 'Content-Type': 'application/json' },
         });
         this.response = res.data.Seating || [];
