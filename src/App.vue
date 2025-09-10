@@ -14,9 +14,9 @@
           <button type="button" class="btn btn-danger" @click="removeStudent(index)">Удалить</button>
         </div>
       </div>
-      <button type="button" class="btn btn-primary mb-3" @click="addStudent">Добавить студента</button>
+      <button type="button" class="btn btn-primary mb-3" @click="addStudent">Добавить ученика</button>
 
-      <h3>Предпочтения</h3>
+      <h3>Посадить вместе</h3>
       <div v-for="(pref, index) in request.preferences" :key="'pref-' + index" class="input-group mb-2">
         <select v-model="pref[0]" class="form-control">
           <option v-for="student in request.students" :value="student.id">
@@ -32,7 +32,7 @@
       </div>
       <button type="button" class="btn btn-primary mb-3" @click="request.preferences.push([0, 1])">Добавить предпочтение</button>
 
-      <h3>Запрещённые пары</h3>
+      <h3>Рассадить</h3>
       <div v-for="(forb, index) in request.forbidden" :key="'forb-' + index" class="input-group mb-2">
         <select v-model="forb[0]" class="form-control">
           <option v-for="student in request.students" :value="student.id">
@@ -102,12 +102,12 @@
         </div>
       <button type="submit" class="btn btn-success">Сгенерировать рассадку</button>
       <button type="button" class="btn btn-warning" @click="clearData">Очистить данные</button>
-      <button type="button" class="btn btn-success" @click="saveSeating">Сохранить рассадку</button>
+      <button type="button" class="btn btn-success" @click="newSeating">Сохранить рассадку</button>
     </form>
     <div v-if="savedSeatings.length > 0" class="mt-4">
       <h3>Сохраненные рассадки</h3>
       <div v-for="(seating, index) in savedSeatings">
-        <button class="btn btn-secondary mr-2" @click="loadSeating(index)">{{ seating.timestamp }}</button>
+        <button class="btn mr-2" @click="loadSeating(index)" :class="{'btn-primary': chosenIndex === index, 'btn-secondary' : chosenIndex != index}">{{ seating.timestamp }}</button>
         <button class="btn btn-danger mr-2" @click="deleteSeating(index)">Удалить рассадку</button>
       </div>
     </div>
@@ -155,7 +155,6 @@
 
 <script>
 import axios from 'axios';
-import env from 'process';
 
 export default {
   data() {
@@ -207,12 +206,15 @@ export default {
       ignored: [],
       priorities: ['Медицинские парты и ряды', 'Предпочитаемые парты и ряды', 'Запрещенные пары', 'Предпочтения учеников по парам'],
       savedSeatings: [],
+      chosenIndex: 0,
     };
   },
   created(){
     const saved = localStorage.getItem('savedSeatings');
     if (saved) {
       this.savedSeatings = JSON.parse(saved);
+    } else {
+
     }
   },
   methods: {
@@ -361,20 +363,16 @@ export default {
     areAllElementsUnique (arr) {
       return new Set(arr).size === arr.length;
     },
-    saveSeating() {
-      if (this.response.length > 0) {
-        const seatingData = {
-          timestamp: new Date().toISOString(),
-          request: JSON.parse(JSON.stringify(this.request)),
-          response: [...this.response],
-          fitness: this.fitness,
-          ignored: [...this.ignored],
-        };
-        this.savedSeatings.push(seatingData);
-        localStorage.setItem('savedSeatings', JSON.stringify(this.savedSeatings));
-      } else {
-        this.error.push("Чтобы сохранить рассадку, сначала сгенерируйте её");
-      }
+    newSeating() {
+      const seatingData = {
+        timestamp: new Date().toISOString(),
+        request: JSON.parse(JSON.stringify(this.request)),
+        response: [...this.response],
+        fitness: this.fitness,
+        ignored: [...this.ignored],
+      };
+      this.savedSeatings.push(seatingData);
+      localStorage.setItem('savedSeatings', JSON.stringify(this.savedSeatings));
     },
     loadSeating(index) {
       const seating = this.savedSeatings[index];
@@ -382,11 +380,62 @@ export default {
       this.response = [...seating.response];
       this.fitness = seating.fitness;
       this.ignored = [...seating.ignored];
+      this.chosenIndex = index;
+    },
+    clearData() {
+      this.request.students.splice(0, this.request.students.length);
+      this.request.students.push({
+        id: 0,
+        name: '',
+        preferredRows: '',
+        preferredColumns: '',
+        medicalPreferredRow: '',
+        medicalPreferredColumn: '',
+      });
+
+      this.request.preferences.splice(0, this.request.preferences.length);
+      this.request.forbidden.splice(0, this.request.forbidden.length);
+
+      this.request.classConfig.rows = 2;
+      this.request.classConfig.columns = 2;
+      this.request.classConfig.deskType = 'double';
+
+      this.request.priority = [3, 2, 1, 0];
+      this.request.popSize = 300;
+      this.request.generations = 400;
+      this.request.crossOverChance = 0.3;
+
+      this.response = [];
     },
     deleteSeating(index) {
       this.savedSeatings.splice(index, 1);
+      this.chosenIndex = -1;
       localStorage.setItem('savedSeatings', JSON.stringify(this.savedSeatings));
     },
+    saveSeating() {
+      const seatingData = {
+        timestamp: new Date().toISOString(),
+        request: JSON.parse(JSON.stringify(this.request)),
+        response: [...this.response],
+        fitness: this.fitness,
+        ignored: [...this.ignored],
+      };
+      this.savedSeatings[this.chosenIndex] = seatingData;
+      localStorage.setItem('savedSeatings', JSON.stringify(this.savedSeatings));
+    },
+  },
+  watch : {
+    'request' : {
+      handler() {
+        this.saveSeating();
+      }
+    },
+    'response' : {
+      handler () {
+        this.saveSeating();
+      }
+    },
+    deep: true,
   },
 };
 </script>
