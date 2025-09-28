@@ -3,7 +3,7 @@
     <h1>Генератор школьной рассадки</h1>
     <BContainer class="mt-3 mb-3" fluid>
       <BRow>
-        <BCol>
+        <BCol fluid="sm">
           <h3>Конфигурация класса</h3>
           <div class="mb-3">
             <label>Ряды:</label>
@@ -59,7 +59,7 @@
               </div>
             </BAccordionItem>
           </BAccordion>
-          <button type="submit" class="btn btn-success">Сгенерировать рассадку</button>
+          <button type="submit" class="btn btn-success" @click="generateSeating">Сгенерировать рассадку</button>
           <button type="button" class="btn btn-warning" @click="clearData">Очистить данные</button>
           <div v-if="error" class="alert alert-danger mt-3">
             {{ error }}
@@ -74,33 +74,33 @@
             <p>Баллов набрано: {{ fitness }}</p>
           </div>
           <h4>Визуализация</h4>
-          <div v-if="request.classConfig.deskType === 'double'" class="classroom">
-            <div class="row header-row">
-              <div class="seat-label"></div>
-              <div v-for="col in request.classConfig.columns * 2" :key="'header-' + col" class="seat-label"
-                :class="{ 'desig': col % 2 === 0 }">
-                {{ col }}
-              </div>
-            </div>
-            <div v-for="row in request.classConfig.rows" :key="row" class="row">
-              <div class="seat-label">{{ row }}</div>
-              <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat"
-                :class="{ 'double-desk': request.classConfig.deskType === 'double' && col % 2 === 0, 'ignored': ignored.includes(getStudentID(row - 1, col - 1)) }">
-                {{ getStudentName(row - 1, col - 1) || '-' }}
-              </div>
-            </div>
-          </div>
+          <BContainer v-if="request.classConfig.deskType === 'double'" class="classroom">
+            <BRow no-gutters>
+                <BCol class="seat-label" ></BCol>
+                <BCol v-for="col in request.classConfig.columns * 2" :key="'header-' + col" class="seat-label" align-h="center"
+                  :class="{ 'desig': col % 2 === 0 }">
+                  {{ col }}
+                </BCol>
+              </BRow>
+              <BRow no-gutters  v-for="row in request.classConfig.rows" :key="row">
+                <BCol align-h="center" class="seat-label">{{ row }}</BCol>
+                <BCol align-h="center" v-for="col in request.classConfig.columns * 2" :key="col"
+                  :class="{ 'double-desk': col % 2 === 0, 'ignored': ignored.includes(getStudentID(row - 1, col - 1)) }">
+                  {{ getStudentName(row - 1, col - 1) || '-' }}
+                </BCol>
+              </BRow>
+          </BContainer>
           <div v-else class="classroom">
             <div class="row header-row">
-              <div class="seat-label"></div>
-              <div v-for="col in request.classConfig.columns" :key="'header-' + col" class="seat-label">
+              <div class="seat-label" :style="{ width: `${10 - request.classConfig.columns}em`, height: `${(10 - request.classConfig.columns) / 1.5}em` }"></div>
+              <div v-for="col in request.classConfig.columns" :key="'header-' + col" class="seat-label" :style="{ width: `${10 - request.classConfig.columns}em`, height: `${(10 - request.classConfig.columns) / 1.5}em` }">
                 {{ col }}
               </div>
             </div>
             <div v-for="row in request.classConfig.rows" :key="row" class="row">
-              <div class="seat-label">{{ row }}</div>
+              <div class="seat-label" :style="{ width: `${10 - request.classConfig.columns}em`, height: `${(10 - request.classConfig.columns) / 1.5}em` }">{{ row }}</div>
               <div v-for="col in request.classConfig.columns" :key="col" class="seat"
-                :class="{ 'ignored': ignored.includes(getStudentID(row - 1, col - 1)) }">
+                :class="{ 'ignored': ignored.includes(getStudentID(row - 1, col - 1)) }" :style="{ width: `${10 - request.classConfig.columns}em`, height: `${(10 - request.classConfig.columns) / 1.5}em` }">
                 {{ getStudentName(row - 1, col - 1) || '-' }}
               </div>
             </div>
@@ -168,7 +168,7 @@
 import { Collapse } from 'bootstrap'; 
 import axios from 'axios';
 import env from 'process';
-import { BApp, BContainer } from 'bootstrap-vue-next'
+import { BApp } from 'bootstrap-vue-next'
 
 export default {
   data() {
@@ -490,38 +490,9 @@ export default {
   flex-direction: column;
   height: 100hv;
 }
-.main-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-.left-panel, .right-panel {
-  width: 25%;
-  padding: 1rem;
-  border-right: 1px solid #dee2e6;
-    overflow-y: auto;
-}
-.center-panel {
-  flex: 1;
-  overflow: auto;
-}
-.classroom {
-  display: flex;
-  flex-direction: column;
-}
-
-.row {
-  display: flex;
-}
-
 .seat {
-  width: 100px;
-  height: 50px;
   border: 1px solid #ccc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 5px;
+  margin: 1em;
 }
 
 .double-desk {
@@ -537,8 +508,6 @@ export default {
 }
 
 .seat-label {
-  width: 100px;
-  height: 50px;
   border: 1px solid #ccc;
   display: flex;
   align-items: center;
