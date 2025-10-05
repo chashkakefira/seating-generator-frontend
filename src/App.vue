@@ -115,35 +115,38 @@
               </div>
             </div>
           </BCol>
-          <BCol sm="8" md="4" style="overflow: auto; max-height: 90vh;">
+          <BCol sm="8" md="4" class="p-2" style="overflow: auto; max-height: 90vh;">
             <h3>Ученики</h3>
-            <BAccordion>
-              <BAccordionItem v-for="(student, index) in request.students" :key="index" class="mb-3"
-                :title="`${student.name}`">
-                <div class="input-group">
-                  <input v-model="student.name" type="text" class="form-control" placeholder="Имя ученика" required />
-                </div>
-                <div class="input-group">
-                  <input v-model="student.preferredColumns" type="text" class="form-control"
-                    placeholder="Предпочитаемые ряды (через запятую)" />
-                </div>
-                <div class="input-group">
-                  <input v-model="student.preferredRows" type="text" class="form-control"
-                    placeholder="Предпочитаемые парты (через запятую)" />
-                </div>
-                <div class="input-group">
-                  <input v-model="student.medicalPreferredColumn" type="text" class="form-control"
-                    placeholder="Медицинские ряды (через запятую)" />
-                </div>
-                <div class="input-group">
-                  <input v-model="student.medicalPreferredRow" type="text" class="form-control"
-                    placeholder="Медицинские парты (через запятую)" />
-                </div>
-                <button type="button" class="btn btn-danger" @click="removeStudent(index)">Удалить</button>
-              </BAccordionItem>
-            </BAccordion>
-            <button type="button" class="btn btn-primary mb-3" @click="addStudent">Добавить студента</button>
-
+            <BFormInput v-model="studentSearch" placeholder="Поиск по имени" class="mb-3" />
+            <BTable :items="paginatedStudents" :fields="studentFields" striped responsive>
+              <template #cell(actions)="row">
+                <BButton size="sm" variant="primary" @click="openEditModal(row.item)">Редактировать</BButton>
+                <BButton size="sm" variant="danger" @click="removeStudent(row.index)">Удалить</BButton>
+              </template>
+            </BTable>
+            <BPagination v-model="currentPage" :total-rows="filteredStudents.length" :per-page="perPage" class="mt-3" />
+            <BButton type="button" class="btn btn-primary mb-3" @click="addStudent">Добавить ученика</BButton>
+            <BModal v-model="showModal" :title="editingStudent ? 'Редактировать ученика' : 'Добавить ученика'"
+              ok-title="Сохранить" @ok="saveStudent">
+              <BForm>
+                <BFormGroup label="Имя ученика" :state="validateName(modalStudent.name)">
+                  <BFormInput v-model="modalStudent.name" required />
+                  <BFormInvalidFeedback>Имя не может быть пустым</BFormInvalidFeedback>
+                </BFormGroup>
+                <BFormGroup label="Предпочитаемые ряды (через запятую)">
+                  <BFormInput v-model="modalStudent.preferredRows" />
+                </BFormGroup>
+                <BFormGroup label="Предпочитаемые парты (через запятую)">
+                  <BFormInput v-model="modalStudent.preferredColumns" />
+                </BFormGroup>
+                <BFormGroup label="Медицинские ряды (через запятую)">
+                  <BFormInput v-model="modalStudent.medicalPreferredRow" />
+                </BFormGroup>
+                <BFormGroup label="Медицинские парты (через запятую)">
+                  <BFormInput v-model="modalStudent.medicalPreferredColumn" />
+                </BFormGroup>
+              </BForm>
+            </BModal>
             <h3>Предпочтения</h3>
             <div v-for="(pref, index) in request.preferences" :key="'pref-' + index" class="input-group mb-2">
               <select v-model="pref[0]" class="form-control">
@@ -161,7 +164,6 @@
             </div>
             <button type="button" class="btn btn-primary mb-3" @click="request.preferences.push([0, 1])">Добавить
               предпочтение</button>
-
             <h3>Запрещённые пары</h3>
             <div v-for="(forb, index) in request.forbidden" :key="'forb-' + index" class="input-group mb-2">
               <select v-model="forb[0]" class="form-control">
@@ -189,7 +191,6 @@
 <script>
 import { BApp } from 'bootstrap-vue-next';
 import axios from 'axios';
-import { Collapse } from 'bootstrap';
 
 export default {
   data() {
@@ -243,7 +244,33 @@ export default {
       savedSeatings: [],
       chosenIndex: 0,
       chosenStudentID: null,
+      studentSearch: '',
+      currentPage: 1,
+      perPage: 3,
+      showModal: false,
+      editingStudent: null,
+      modalStudent: { name: '', preferredRows: '', preferredColumns: '', medicalPreferredRow: '', medicalPreferredColumn: '' },
+      studentFields: [
+        { key: 'name', label: 'Имя' },
+        { key: 'preferredRows', label: 'Предпочт. ряды' },
+        { key: 'preferredColumns', label: 'Предпочт. парты' },
+        { key: 'medicalPreferredRow', label: 'Мед. ряды' },
+        { key: 'medicalPreferredColumn', label: 'Мед. парты' },
+        { key: 'actions', label: 'Действия' }
+      ]
     };
+  },
+  computed: {
+    filteredStudents() {
+      return this.request.students.filter(student =>
+        student.name.toLowerCase().includes(this.studentSearch.toLowerCase())
+      );
+    },
+    paginatedStudents() {
+      const start = (this.currentPage - 1) * this.perPage;
+      const end = start + this.perPage;
+      return this.filteredStudents.slice(start, end);
+    },
   },
   created() {
     const savedData = localStorage.getItem('seatingRequest');
@@ -329,15 +356,9 @@ export default {
       return error;
     },
     addStudent() {
-      const newId = this.request.students.length;
-      this.request.students.push({
-        id: newId,
-        name: '',
-        preferredRows: '',
-        preferredColumns: '',
-        medicalPreferredRow: '',
-        medicalPreferredColumn: '',
-      });
+      this.editingStudent = null;
+      this.modalStudent = { name: '', preferredRows: '', preferredColumns: '', medicalPreferredRow: '', medicalPreferredColumn: '' };
+      this.showModal = true;
     },
     removeStudent(index) {
       this.request.students.splice(index, 1);
@@ -473,6 +494,24 @@ export default {
         this.chosenStudentID = null;
       }
     },
+    openEditModal(student) {
+      this.editingStudent = student;
+      this.modalStudent = { ...student };
+      this.showModal = true;
+    },
+    saveStudent() {
+      if (this.editingStudent) {
+        Object.assign(this.editingStudent, this.modalStudent);
+      } else {
+        const newId = this.request.students.length;
+        this.request.students.push({ id: newId, ...this.modalStudent });
+      }
+      this.showModal = false;
+      this.modalStudent = { name: '', preferredRows: '', preferredColumns: '', medicalPreferredRow: '', medicalPreferredColumn: '' };
+    },
+    validateName(name) {
+      return name.trim().length > 0;
+    }
   },
   watch: {
     request: {
@@ -487,17 +526,7 @@ export default {
       },
       deep: true,
     },
-  },
-  computed: {
-    gridStyle() {
-      const columns = this.request.classConfig.deskType === 'double' ? this.request.classConfig.columns * 2 : this.request.classConfig.columns;
-      const rows = this.request.classConfig.rows;
-      return {
-        gridTemplateColumns: `minmax(3rem, 1fr) repeat(${columns}, minmax(3rem, 1fr))`,
-        gridTemplateRows: `minmax(3rem, 1fr) repeat(${rows}, minmax(3rem, 1fr))`,
-      };
-    },
-  },
+  }
 };
 </script>
 
@@ -529,7 +558,7 @@ export default {
   justify-content: center;
   border: 1px solid #ccc;
   text-align: center;
-  font-size: clamp(0.7rem, 1vw, 0.7rem);
+  font-size: 0.7rem;
   padding: 0.5rem;
   min-width: 3rem;
   min-height: 3rem;
