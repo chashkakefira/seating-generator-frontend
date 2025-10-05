@@ -127,7 +127,7 @@
             <BPagination v-model="currentPage" :total-rows="filteredStudents.length" :per-page="perPage" class="mt-3" />
             <BButton type="button" class="btn btn-primary mb-3" @click="addStudent">Добавить ученика</BButton>
             <BModal v-model="showModal" :title="editingStudent ? 'Редактировать ученика' : 'Добавить ученика'"
-              ok-title="Сохранить" @ok="saveStudent">
+              ok-title="Сохранить" cancel-title="Отмена" @ok="saveStudent">
               <BForm>
                 <BFormGroup label="Имя ученика" :state="validateName(modalStudent.name)">
                   <BFormInput v-model="modalStudent.name" required />
@@ -525,6 +525,9 @@ export default {
         this.saveSeating();
       },
       deep: true,
+    },
+    studentSearch() {
+      this.currentPageStudents = 1;
     },
   }
 };
