@@ -1,185 +1,189 @@
 <template>
-  <BApp>
-    <h1>Генератор школьной рассадки</h1>
-    <BContainer class="mt-3 mb-3" fluid>
-      <BRow>
-        <BCol sm="10" md="2">
-          <h3>Конфигурация класса</h3>
-          <div class="mb-3">
-            <label>Ряды:</label>
-            <input v-model.number="request.classConfig.columns" type="number" class="form-control" required />
-          </div>
-          <div class="mb-3">
-            <label>Парт в ряду:</label>
-            <input v-model.number="request.classConfig.rows" type="number" class="form-control" required />
-          </div>
-          <div class="mb-3">
-            <label>Тип парт:</label>
-            <select v-model="request.classConfig.deskType" class="form-control">
-              <option value="single">Одиночные</option>
-              <option value="double">Двойные</option>
-            </select>
-          </div>
-          <BAccordion>
-            <BAccordionItem title="Настройки генетического алгоритма">
-              <p>Приоритеты параметров оценивания (от наивысшего к наименьшему):</p>
-              <div class="input-group mb-2">
-                <select v-model="request.priority[3]" class="form-control">
-                  <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
-                    {{ pr }}
-                  </option>
-                </select>
-              </div>
-              <div class="input-group mb-2">
-                <select v-model="request.priority[2]" class="form-control">
-                  <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
-                    {{ pr }}
-                  </option>
-                </select>
-              </div>
-              <div class="input-group mb-2">
-                <select v-model="request.priority[1]" class="form-control">
-                  <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
-                    {{ pr }}
-                  </option>
-                </select>
-              </div>
-              <div class="input-group mb-2">
-                <select v-model="request.priority[0]" class="form-control">
-                  <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
-                    {{ pr }}
-                  </option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label>Размер популяции</label>
-                <input v-model.number="request.popSize" type="number" class="form-control" required />
-              </div>
-              <div class="mb-3">
-                <label>Количество поколений</label>
-                <input v-model.number="request.generations" type="number" class="form-control" required />
-              </div>
-              <div class="mb-3">
-                <label>Шанс кроссинговера</label>
-                <input v-model.number="request.crossOverChance" type="number" step="0.1" class="form-control"
-                  required />
-              </div>
-            </BAccordionItem>
-          </BAccordion>
-          <button type="button" class="btn btn-success mt-3" @click="generateSeating">Сгенерировать рассадку</button>
-          <button type="button" class="btn btn-warning mt-3" @click="clearData">Очистить данные</button>
-          <div v-if="error" class="alert alert-danger mt-3">
-            {{ error }}
-            <div v-if="validateErrors.length > 0" class="alert alert-danger mt-3">
-              <p v-for="error in validateErrors" :key="error">{{ error }}</p>
+
+  <body>
+    <BApp>
+      <h1>Генератор школьной рассадки</h1>
+      <BContainer class="mt-3 mb-3" fluid>
+        <BRow>
+          <BCol sm="10" md="2">
+            <h3>Конфигурация класса</h3>
+            <div class="mb-3">
+              <label>Ряды:</label>
+              <input v-model.number="request.classConfig.columns" type="number" class="form-control" required />
             </div>
-          </div>
-        </BCol>
-        <BCol sm="12" md="6">
-          <div v-if="response.length > 0" class="mt-4">
-            <h3>Результат рассадки</h3>
-            <p>Баллов набрано: {{ fitness }}</p>
-          </div>
-          <h4>Визуализация</h4>
-          <BContainer v-if="request.classConfig.deskType === 'double'" class="classroom">
-            <div class="grid-container" :style="gridStyle">
-              <div class="seat-label"></div>
-              <div v-for="col in request.classConfig.columns * 2" :key="'header-' + col" class="seat-label"
-                :class="{ 'desig': col % 2 === 0 }">
-                {{ col }}
+            <div class="mb-3">
+              <label>Парт в ряду:</label>
+              <input v-model.number="request.classConfig.rows" type="number" class="form-control" required />
+            </div>
+            <div class="mb-3">
+              <label>Тип парт:</label>
+              <select v-model="request.classConfig.deskType" class="form-control">
+                <option value="single">Одиночные</option>
+                <option value="double">Двойные</option>
+              </select>
+            </div>
+            <BAccordion>
+              <BAccordionItem title="Настройки генетического алгоритма">
+                <p>Приоритеты параметров оценивания (от наивысшего к наименьшему):</p>
+                <div class="input-group mb-2">
+                  <select v-model="request.priority[3]" class="form-control">
+                    <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
+                      {{ pr }}
+                    </option>
+                  </select>
+                </div>
+                <div class="input-group mb-2">
+                  <select v-model="request.priority[2]" class="form-control">
+                    <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
+                      {{ pr }}
+                    </option>
+                  </select>
+                </div>
+                <div class="input-group mb-2">
+                  <select v-model="request.priority[1]" class="form-control">
+                    <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
+                      {{ pr }}
+                    </option>
+                  </select>
+                </div>
+                <div class="input-group mb-2">
+                  <select v-model="request.priority[0]" class="form-control">
+                    <option v-for="pr in priorities" :value="priorities.indexOf(pr)">
+                      {{ pr }}
+                    </option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label>Размер популяции</label>
+                  <input v-model.number="request.popSize" type="number" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                  <label>Количество поколений</label>
+                  <input v-model.number="request.generations" type="number" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                  <label>Шанс кроссинговера</label>
+                  <input v-model.number="request.crossOverChance" type="number" step="0.1" class="form-control"
+                    required />
+                </div>
+              </BAccordionItem>
+            </BAccordion>
+            <button type="button" class="btn btn-success mt-3" @click="generateSeating">Сгенерировать рассадку</button>
+            <button type="button" class="btn btn-warning mt-3" @click="clearData">Очистить данные</button>
+            <div v-if="error" class="alert alert-danger mt-3">
+              {{ error }}
+              <div v-if="validateErrors.length > 0" class="alert alert-danger mt-3">
+                <p v-for="error in validateErrors" :key="error">{{ error }}</p>
               </div>
-              <template v-for="row in request.classConfig.rows" :key="row">
+            </div>
+          </BCol>
+          <BCol sm="12" md="6">
+            <div v-if="response.length > 0" class="mt-4">
+              <h3>Результат рассадки</h3>
+              <p>Баллов набрано: {{ fitness }}</p>
+            </div>
+            <h4>Визуализация</h4>
+            <div v-if="request.classConfig.deskType === 'double'" class="classroom">
+              <div class="row header-row">
+                <div class="seat-label"></div>
+                <div v-for="col in request.classConfig.columns * 2" :key="'header-' + col" class="seat-label"
+                  :class="{ 'double-desk': col % 2 === 0 }">
+                  {{ col }}
+                </div>
+              </div>
+              <div v-for="row in request.classConfig.rows" :key="row" class="row">
                 <div class="seat-label">{{ row }}</div>
                 <div v-for="col in request.classConfig.columns * 2" :key="col" class="seat"
-                  :class="{ 'double-desk': col % 2 === 0, 'ignored': ignored.includes(getStudentID(row - 1, col - 1)) }">
+                  :class="{ 'double-desk': request.classConfig.deskType === 'double' && col % 2 === 0, 'ignored': ignored.includes(getStudentID(row - 1, col - 1)) }">
                   {{ getStudentName(row - 1, col - 1) || '-' }}
                 </div>
-              </template>
+              </div>
             </div>
-          </BContainer>
-          <BContainer v-else class="classroom">
-            <BRow no-gutters class="header-row">
-              <BCol class="seat-label" cols="auto"></BCol>
-              <BCol v-for="col in request.classConfig.columns" :key="'header-' + col" class="seat-label" cols="auto">
-                {{ col }}
-              </BCol>
-            </BRow>
-            <BRow no-gutters v-for="row in request.classConfig.rows" :key="row">
-              <BCol class="seat-label" cols="auto">{{ row }}</BCol>
-              <BCol v-for="col in request.classConfig.columns" :key="col" class="seat"
-                :class="{ 'ignored': ignored.includes(getStudentID(row - 1, col - 1)) }" cols="auto">
-                {{ getStudentName(row - 1, col - 1) || '-' }}
-              </BCol>
-            </BRow>
-          </BContainer>
-        </BCol>
-        <BCol sm="8" md="4" style="overflow: auto; max-height: 90vh;">
-          <h3>Ученики</h3>
-          <BAccordion>
-            <BAccordionItem v-for="(student, index) in request.students" :key="index" class="mb-3"
-              :title="`${student.name}`">
-              <div class="input-group">
-                <input v-model="student.name" type="text" class="form-control" placeholder="Имя ученика" required />
+            <div v-else class="classroom">
+              <div class="row header-row">
+                <div class="seat-label single-desk"></div>
+                <div v-for="col in request.classConfig.columns" :key="'header-' + col" class="seat-label single-desk">
+                  {{ col }}
+                </div>
               </div>
-              <div class="input-group">
-                <input v-model="student.preferredColumns" type="text" class="form-control"
-                  placeholder="Предпочитаемые ряды (через запятую)" />
+              <div v-for="row in request.classConfig.rows" :key="row" class="row">
+                <div class="seat-label single-desk">{{ row }}</div>
+                <div v-for="col in request.classConfig.columns" :key="col" class="seat single-desk"
+                  :class="{ 'ignored': ignored.includes(getStudentID(row - 1, col - 1)) }">
+                  {{ getStudentName(row - 1, col - 1) || '-' }}
+                </div>
               </div>
-              <div class="input-group">
-                <input v-model="student.preferredRows" type="text" class="form-control"
-                  placeholder="Предпочитаемые парты (через запятую)" />
-              </div>
-              <div class="input-group">
-                <input v-model="student.medicalPreferredColumn" type="text" class="form-control"
-                  placeholder="Медицинские ряды (через запятую)" />
-              </div>
-              <div class="input-group">
-                <input v-model="student.medicalPreferredRow" type="text" class="form-control"
-                  placeholder="Медицинские парты (через запятую)" />
-              </div>
-              <button type="button" class="btn btn-danger" @click="removeStudent(index)">Удалить</button>
-            </BAccordionItem>
-          </BAccordion>
-          <button type="button" class="btn btn-primary mb-3" @click="addStudent">Добавить студента</button>
+            </div>
+          </BCol>
+          <BCol sm="8" md="4" style="overflow: auto; max-height: 90vh;">
+            <h3>Ученики</h3>
+            <BAccordion>
+              <BAccordionItem v-for="(student, index) in request.students" :key="index" class="mb-3"
+                :title="`${student.name}`">
+                <div class="input-group">
+                  <input v-model="student.name" type="text" class="form-control" placeholder="Имя ученика" required />
+                </div>
+                <div class="input-group">
+                  <input v-model="student.preferredColumns" type="text" class="form-control"
+                    placeholder="Предпочитаемые ряды (через запятую)" />
+                </div>
+                <div class="input-group">
+                  <input v-model="student.preferredRows" type="text" class="form-control"
+                    placeholder="Предпочитаемые парты (через запятую)" />
+                </div>
+                <div class="input-group">
+                  <input v-model="student.medicalPreferredColumn" type="text" class="form-control"
+                    placeholder="Медицинские ряды (через запятую)" />
+                </div>
+                <div class="input-group">
+                  <input v-model="student.medicalPreferredRow" type="text" class="form-control"
+                    placeholder="Медицинские парты (через запятую)" />
+                </div>
+                <button type="button" class="btn btn-danger" @click="removeStudent(index)">Удалить</button>
+              </BAccordionItem>
+            </BAccordion>
+            <button type="button" class="btn btn-primary mb-3" @click="addStudent">Добавить студента</button>
 
-          <h3>Предпочтения</h3>
-          <div v-for="(pref, index) in request.preferences" :key="'pref-' + index" class="input-group mb-2">
-            <select v-model="pref[0]" class="form-control">
-              <option v-for="student in request.students" :value="student.id">
-                {{ student.name || `Ученик ${student.id}` }}
-              </option>
-            </select>
-            <select v-model="pref[1]" class="form-control">
-              <option v-for="student in request.students" :value="student.id">
-                {{ student.name || `Ученик ${student.id}` }}
-              </option>
-            </select>
-            <button type="button" class="btn btn-danger" @click="request.preferences.splice(index, 1)">Удалить</button>
-          </div>
-          <button type="button" class="btn btn-primary mb-3" @click="request.preferences.push([0, 1])">Добавить
-            предпочтение</button>
+            <h3>Предпочтения</h3>
+            <div v-for="(pref, index) in request.preferences" :key="'pref-' + index" class="input-group mb-2">
+              <select v-model="pref[0]" class="form-control">
+                <option v-for="student in request.students" :value="student.id">
+                  {{ student.name || `Ученик ${student.id}` }}
+                </option>
+              </select>
+              <select v-model="pref[1]" class="form-control">
+                <option v-for="student in request.students" :value="student.id">
+                  {{ student.name || `Ученик ${student.id}` }}
+                </option>
+              </select>
+              <button type="button" class="btn btn-danger"
+                @click="request.preferences.splice(index, 1)">Удалить</button>
+            </div>
+            <button type="button" class="btn btn-primary mb-3" @click="request.preferences.push([0, 1])">Добавить
+              предпочтение</button>
 
-          <h3>Запрещённые пары</h3>
-          <div v-for="(forb, index) in request.forbidden" :key="'forb-' + index" class="input-group mb-2">
-            <select v-model="forb[0]" class="form-control">
-              <option v-for="student in request.students" :value="student.id">
-                {{ student.name || `Ученик ${student.id}` }}
-              </option>
-            </select>
-            <select v-model="forb[1]" class="form-control">
-              <option v-for="student in request.students" :value="student.id">
-                {{ student.name || `Ученик ${student.id}` }}
-              </option>
-            </select>
-            <button type="button" class="btn btn-danger" @click="request.forbidden.splice(index, 1)">Удалить</button>
-          </div>
-          <button type="button" class="btn btn-primary mb-3" @click="request.forbidden.push([0, 1])">Добавить
-            запрет</button>
-        </BCol>
-      </BRow>
-    </BContainer>
-    <router-view />
-  </BApp>
+            <h3>Запрещённые пары</h3>
+            <div v-for="(forb, index) in request.forbidden" :key="'forb-' + index" class="input-group mb-2">
+              <select v-model="forb[0]" class="form-control">
+                <option v-for="student in request.students" :value="student.id">
+                  {{ student.name || `Ученик ${student.id}` }}
+                </option>
+              </select>
+              <select v-model="forb[1]" class="form-control">
+                <option v-for="student in request.students" :value="student.id">
+                  {{ student.name || `Ученик ${student.id}` }}
+                </option>
+              </select>
+              <button type="button" class="btn btn-danger" @click="request.forbidden.splice(index, 1)">Удалить</button>
+            </div>
+            <button type="button" class="btn btn-primary mb-3" @click="request.forbidden.push([0, 1])">Добавить
+              запрет</button>
+          </BCol>
+        </BRow>
+      </BContainer>
+      <router-view />
+    </BApp>
+  </body>
 </template>
 
 <script>
@@ -499,17 +503,18 @@ export default {
 
 <style scoped>
 .classroom {
-  max-width: 100%;
   max-height: 80vh;
-  overflow: auto;
   padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  flex: 1;
 }
 
-.grid-container {
-  display: grid;
-  gap: 0.5rem;
-  width: 100%;
-  height: 100%;
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
 }
 
 .header-row {
@@ -544,5 +549,17 @@ export default {
 .seat.ignored {
   background-color: #e0e0e0;
   color: #666;
+}
+
+.double-desk {
+  margin-right: 50px;
+}
+
+.single-desk {
+  margin-right: 20px;
+}
+
+body {
+  margin: 10px;
 }
 </style>
