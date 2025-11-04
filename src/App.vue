@@ -527,7 +527,7 @@ export default {
       deep: true,
     },
     studentSearch() {
-      this.currentPageStudents = 1;
+      this.currentPage = 1;
     },
   }
 };
