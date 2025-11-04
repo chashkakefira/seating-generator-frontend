@@ -147,39 +147,50 @@
                 </BFormGroup>
               </BForm>
             </BModal>
+
             <h3>Предпочтения</h3>
             <div v-for="(pref, index) in request.preferences" :key="'pref-' + index" class="input-group mb-2">
-              <select v-model="pref[0]" class="form-control">
-                <option v-for="student in request.students" :value="student.id">
-                  {{ student.name || `Ученик ${student.id}` }}
+              <input type="text" :list="'pref-students1-' + index" v-model="preferencesDisplay[index][0]"
+                class="form-control" placeholder="Первый ученик"
+                @blur="updateIdFromName('preferences', index, 0, $event.target.value)" />
+              <datalist :id="'pref-students1-' + index">
+                <option v-for="student in request.students" :key="'pref1-' + student.id"
+                  :value="student.name || `Ученик ${student.id}`">
                 </option>
-              </select>
-              <select v-model="pref[1]" class="form-control">
-                <option v-for="student in request.students" :value="student.id">
-                  {{ student.name || `Ученик ${student.id}` }}
+              </datalist>
+              <input type="text" :list="'pref-students2-' + index" v-model="preferencesDisplay[index][1]"
+                class="form-control" placeholder="Второй ученик"
+                @blur="updateIdFromName('preferences', index, 1, $event.target.value)" />
+              <datalist :id="'pref-students2-' + index">
+                <option v-for="student in request.students" :key="'pref2-' + student.id"
+                  :value="student.name || `Ученик ${student.id}`">
                 </option>
-              </select>
-              <button type="button" class="btn btn-danger"
-                @click="request.preferences.splice(index, 1)">Удалить</button>
+              </datalist>
+              <button type="button" class="btn btn-danger" @click="removePreference(index)">Удалить</button>
             </div>
-            <button type="button" class="btn btn-primary mb-3" @click="request.preferences.push([0, 1])">Добавить
-              предпочтение</button>
+            <button type="button" class="btn btn-primary mb-3" @click="addPreference">Добавить предпочтение</button>
+
             <h3>Запрещённые пары</h3>
-            <div v-for="(forb, index) in request.forbidden" :key="'forb-' + index" class="input-group mb-2">
-              <select v-model="forb[0]" class="form-control">
-                <option v-for="student in request.students" :value="student.id">
-                  {{ student.name || `Ученик ${student.id}` }}
+            <div v-for="(pref, index) in request.forbidden" :key="'forbidden-' + index" class="input-group mb-2">
+              <input type="text" :list="'forbidden-students1-' + index" v-model="forbiddenDisplay[index][0]"
+                class="form-control" placeholder="Первый ученик"
+                @blur="updateIdFromName('forbidden', index, 0, $event.target.value)" />
+              <datalist :id="'forbidden-students1-' + index">
+                <option v-for="student in request.students" :key="'forbidden1-' + student.id"
+                  :value="student.name || `Ученик ${student.id}`">
                 </option>
-              </select>
-              <select v-model="forb[1]" class="form-control">
-                <option v-for="student in request.students" :value="student.id">
-                  {{ student.name || `Ученик ${student.id}` }}
+              </datalist>
+              <input type="text" :list="'forbidden-students2-' + index" v-model="forbiddenDisplay[index][1]"
+                class="form-control" placeholder="Второй ученик"
+                @blur="updateIdFromName('forbidden', index, 1, $event.target.value)" />
+              <datalist :id="'forbidden-students2-' + index">
+                <option v-for="student in request.students" :key="'forbidden2-' + student.id"
+                  :value="student.name || `Ученик ${student.id}`">
                 </option>
-              </select>
-              <button type="button" class="btn btn-danger" @click="request.forbidden.splice(index, 1)">Удалить</button>
+              </datalist>
+              <button type="button" class="btn btn-danger" @click="removeForbidden(index)">Удалить</button>
             </div>
-            <button type="button" class="btn btn-primary mb-3" @click="request.forbidden.push([0, 1])">Добавить
-              запрет</button>
+            <button type="button" class="btn btn-primary mb-3" @click="addForbidden">Добавить запрет</button>
           </BCol>
         </BRow>
       </BContainer>
@@ -234,8 +245,8 @@ export default {
         generations: 400,
         crossOverChance: 0.3,
       },
-      preferencesInput: [0, 1],
-      forbiddenInput: [0, 1],
+      preferencesDisplay: [],
+      forbiddenDisplay: [],
       response: [],
       error: '',
       validateErrors: [],
@@ -288,8 +299,58 @@ export default {
         priority: parsedData.priority || [3, 2, 1, 0],
       };
     }
+    this.initDisplayArrays();
   },
   methods: {
+    initDisplayArrays() {
+      this.preferencesDisplay = this.request.preferences.map(pair =>
+        pair.map(id => this.getStudentNameById(id))
+      );
+      this.forbiddenDisplay = this.request.forbidden.map(pair =>
+        pair.map(id => this.getStudentNameById(id))
+      );
+    },
+    getStudentNameById(id) {
+      const student = this.request.students.find(s => s.id === id);
+      return student ? (student.name || `Ученик ${id}`) : '';
+    },
+    getStudentIdByName(name) {
+      if (!name) return null;
+      const student = this.request.students.find(s =>
+        (s.name || `Ученик ${s.id}`) === name.trim()
+      );
+      return student ? student.id : null;
+    },
+    updateIdFromName(type, pairIndex, studentIndex, name) {
+      const id = this.getStudentIdByName(name);
+      if (id !== null) {
+        const array = type === 'preferences' ? this.request.preferences : this.request.forbidden;
+        array[pairIndex][studentIndex] = id;
+        const displayArray = type === 'preferences' ? this.preferencesDisplay : this.forbiddenDisplay;
+        displayArray[pairIndex][studentIndex] = name;
+      } else if (name === '') {
+        const array = type === 'preferences' ? this.request.preferences : this.request.forbidden;
+        array[pairIndex][studentIndex] = null;
+        const displayArray = type === 'preferences' ? this.preferencesDisplay : this.forbiddenDisplay;
+        displayArray[pairIndex][studentIndex] = '';
+      }
+    },
+    addPreference() {
+      this.request.preferences.push([null, null]);
+      this.preferencesDisplay.push(['', '']);
+    },
+    removePreference(index) {
+      this.request.preferences.splice(index, 1);
+      this.preferencesDisplay.splice(index, 1);
+    },
+    addForbidden() {
+      this.request.forbidden.push([null, null]);
+      this.forbiddenDisplay.push(['', '']);
+    },
+    removeForbidden(index) {
+      this.request.forbidden.splice(index, 1);
+      this.forbiddenDisplay.splice(index, 1);
+    },
     validateInput() {
       const error = [];
       const { students, preferences, forbidden, classConfig } = this.request;
@@ -325,12 +386,12 @@ export default {
         });
       });
       preferences.forEach((pair) => {
-        if (pair[0] === pair[1]) {
+        if (pair[0] === pair[1] && pair[0] !== null) {
           error.push(`${studentsIDs.get(pair[0])} не может хотеть сидеть сам с собой`);
         }
       });
       forbidden.forEach((pair) => {
-        if (pair[0] === pair[1]) {
+        if (pair[0] === pair[1] && pair[0] !== null) {
           error.push(`${studentsIDs.get(pair[0])} не может не сидеть сам с собой`);
         }
       });
@@ -365,6 +426,7 @@ export default {
       this.request.students.forEach((student, i) => {
         student.id = i;
       });
+      this.initDisplayArrays();
     },
     parseCommaSeparated(str) {
       if (!str) return [];
@@ -442,6 +504,7 @@ export default {
       this.fitness = seating.fitness;
       this.ignored = [...seating.ignored];
       this.chosenIndex = index;
+      this.initDisplayArrays();
     },
     clearData() {
       this.request.students.splice(0, this.request.students.length);
@@ -463,6 +526,8 @@ export default {
       this.request.generations = 400;
       this.request.crossOverChance = 0.3;
       this.response = [];
+      this.preferencesDisplay = [];
+      this.forbiddenDisplay = [];
     },
     deleteSeating(index) {
       this.savedSeatings.splice(index, 1);
@@ -508,23 +573,30 @@ export default {
       }
       this.showModal = false;
       this.modalStudent = { name: '', preferredRows: '', preferredColumns: '', medicalPreferredRow: '', medicalPreferredColumn: '' };
+      this.initDisplayArrays();
     },
     validateName(name) {
       return name.trim().length > 0;
     }
   },
   watch: {
-    request: {
+    'request.students': {
       handler() {
-        this.saveSeating();
+        this.initDisplayArrays();
       },
-      deep: true,
+      deep: true
     },
-    response: {
+    'request.preferences': {
       handler() {
-        this.saveSeating();
+        this.initDisplayArrays();
       },
-      deep: true,
+      deep: true
+    },
+    'request.forbidden': {
+      handler() {
+        this.initDisplayArrays();
+      },
+      deep: true
     },
     studentSearch() {
       this.currentPage = 1;
