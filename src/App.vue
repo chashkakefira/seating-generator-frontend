@@ -212,19 +212,13 @@
                           'bg-warning-subtle': isIgnored(row, (col - 1) * 2),
                         }"
                         :title="getStudentName(row - 1, (col - 1) * 2)"
-                        v-resize-text
                       >
-                        <span
-                          class="student-name small fw-medium"
-                          v-resize-text
-                          >{{
-                            getStudentName(row - 1, (col - 1) * 2) || ""
-                          }}</span
-                        >
+                        <span class="student-name" v-fit-text>{{
+                          getStudentName(row - 1, (col - 1) * 2) || ""
+                        }}</span>
                       </div>
                       <div
                         class="seat flex-fill d-flex align-items-center justify-content-center p-1"
-                        v-resize-text
                         :class="{
                           'bg-warning-subtle': isIgnored(
                             row,
@@ -233,13 +227,9 @@
                         }"
                         :title="getStudentName(row - 1, (col - 1) * 2 + 1)"
                       >
-                        <span
-                          class="student-name small fw-medium"
-                          v-resize-text
-                          >{{
-                            getStudentName(row - 1, (col - 1) * 2 + 1) || ""
-                          }}</span
-                        >
+                        <span class="student-name" v-fit-text>{{
+                          getStudentName(row - 1, (col - 1) * 2 + 1) || ""
+                        }}</span>
                       </div>
                     </template>
                     <template v-else>
@@ -250,11 +240,9 @@
                         }"
                         :title="getStudentName(row - 1, col - 1)"
                       >
-                        <span
-                          class="student-name small fw-medium"
-                          v-resize-text
-                          >{{ getStudentName(row - 1, col - 1) || "" }}</span
-                        >
+                        <span class="student-name small fw-medium" v-fit-text>{{
+                          getStudentName(row - 1, col - 1) || ""
+                        }}</span>
                       </div>
                     </template>
                   </div>
@@ -586,6 +574,36 @@ const endPan = (e) => {
 
 const isIgnored = (row, colIndex) =>
   ignored.value.includes(getStudentID(row - 1, colIndex));
+
+const vFitText = {
+  mounted: (el) => adjustFontSize(el),
+  updated: (el) => adjustFontSize(el),
+};
+
+const adjustFontSize = (el) => {
+  const maxFontSize = 14;
+  const minFontSize = 9;
+
+  el.style.fontSize = maxFontSize + "px";
+  el.style.lineHeight = "1.1";
+  el.style.textOverflow = "clip";
+  el.style.overflow = "visible";
+
+  let currentSize = maxFontSize;
+
+  while (el.scrollWidth > el.clientWidth && currentSize > minFontSize) {
+    currentSize--;
+    el.style.fontSize = currentSize + "px";
+  }
+
+  if (el.scrollWidth > el.clientWidth) {
+    el.style.overflow = "hidden";
+    el.style.textOverflow = "ellipsis";
+  } else {
+    el.style.overflow = "hidden";
+    el.style.textOverflow = "clip";
+  }
+};
 </script>
 
 <style scoped>
@@ -633,7 +651,9 @@ const isIgnored = (row, colIndex) =>
 }
 
 .seat {
-  max-width: 110px;
+  width: 110px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .teacher-desk {
@@ -670,5 +690,8 @@ const isIgnored = (row, colIndex) =>
 }
 .student-name {
   max-width: 100%;
+  display: block;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 </style>
