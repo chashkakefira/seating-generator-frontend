@@ -54,7 +54,7 @@ export function useSeating() {
   const chosenStudentID = ref(null)
   const studentSearch = ref('')
   const currentPage = ref(1)
-  const perPage = ref(3)
+  const perPage = ref(8)
   const showModal = ref(false)
   const editingStudent = ref(null)
   const modalStudent = ref({ name: '', preferredRows: '', preferredColumns: '', medicalPreferredRow: '', medicalPreferredColumn: '' })
@@ -73,7 +73,7 @@ export function useSeating() {
     3 : 'Медицинские парты и ряды' ,
     2 : 'Предпочитаемые парты и ряды',
     1 : 'Запрещенные пары' ,
-    0: 'Предпочтения учеников по парам', 
+    0 : 'Предпочтения учеников по парам', 
   };
 
 

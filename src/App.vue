@@ -266,14 +266,14 @@
         <BCol
           md="3"
           lg="3"
-          class="data-panel bg-white border-start p-0 d-flex flex-column"
-          style="height: 90vh"
+          class="data-panel bg-white border-start p-0 d-flex flex-column overflow-auto"
+          style="height: 92vh"
         >
           <BTabs content-class="mt-3">
             <div
               class="tab-content flex-grow-1 overflow-hidden d-flex flex-column"
             >
-              <BTab title="Ученки" active>
+              <BTab title="Ученки" active class="overflow-hidden">
                 <div class="p-2 border-bottom bg-light">
                   <div class="input-group input-group-sm">
                     <span class="input-group-text">
@@ -289,7 +289,14 @@
                     </button>
                   </div>
                 </div>
-                <div class="overflow-auto flex-grow-1 p-2">
+                <div class="overflow-hidden flex-grow-1 p-2">
+                  <BPagination
+                    v-model="currentPage"
+                    :total-rows="filteredStudents.length"
+                    :per-page="perPage"
+                    size="sm"
+                    class="justify-content-center mt-2"
+                  />
                   <div
                     v-for="student in paginatedStudents"
                     :key="student.id"
@@ -325,13 +332,6 @@
                       </div>
                     </div>
                   </div>
-                  <BPagination
-                    v-model="currentPage"
-                    :total-rows="filteredStudents.length"
-                    :per-page="perPage"
-                    size="sm"
-                    class="justify-content-center mt-2"
-                  />
                 </div>
               </BTab>
               <BTab title="Предпочтения" class="p-2">
