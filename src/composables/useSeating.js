@@ -69,6 +69,17 @@ export function useSeating() {
     { key: 'actions', label: 'Действия' }
   ])
 
+  const accordionItems = ref(( [
+    { id: 1, title: 'Медицинские парты и ряды', priorityValue: request.priority?.[0] ?? null },
+    { id: 2, title: 'Предпочитаемые парты и ряды', priorityValue: request.priority?.[1] ?? null },
+    { id: 3, title: 'Запрещенные пары', priorityValue: request.priority?.[2] ?? null },
+    { id: 4, title: 'Предпочтения учеников по парам', priorityValue: request.priority?.[3] ?? null },
+  ]))
+
+  const onDragEnd = () => {
+    request.priority = accordionItems.value.map(item => item.priorityValue)
+  }
+
   const filteredStudents = computed(() => {
     return request.value.students.filter(student =>
       student.name.toLowerCase().includes(studentSearch.value.toLowerCase())
@@ -449,6 +460,7 @@ export function useSeating() {
     studentFields,
     filteredStudents,
     paginatedStudents,
+    accordionItems,
     initDisplayArrays,
     getStudentNameById,
     getStudentIdByName,
@@ -474,5 +486,6 @@ export function useSeating() {
     openEditModal,
     saveStudent,
     validateName,
+    onDragEnd,
   }
 }
