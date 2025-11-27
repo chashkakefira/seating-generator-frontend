@@ -69,20 +69,18 @@
                   >Приоритеты (Сверху = важнее)</label
                 >
                 <draggable
-                  v-model="accordionItems"
-                  handle=".handle"
-                  item-key="id"
+                  v-model="request.priority"
+                  item-key="element => element"
                   class="list-group"
-                  @end="onDragEnd"
                 >
                   <template #item="{ element }">
                     <div
-                      class="list-group-item d-flex align-items-center mb-1 p-2"
+                      class="drag-item list-group-item d-flex align-items-center mb-1 p-2"
                     >
                       <span class="handle me-2" style="cursor: grab"
                         >&#9776;</span
                       >
-                      <span>{{ element.title }}</span>
+                      <span>{{ accordionItems[element] }}</span>
                     </div>
                   </template>
                 </draggable>
@@ -214,6 +212,7 @@
                           'bg-warning-subtle': isIgnored(row, (col - 1) * 2),
                         }"
                         :title="getStudentName(row - 1, (col - 1) * 2)"
+                        v-resize-text
                       >
                         <span
                           class="student-name small fw-medium"
