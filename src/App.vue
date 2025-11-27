@@ -207,7 +207,7 @@
                   >
                     <template v-if="request.classConfig.deskType === 'double'">
                       <div
-                        class="seat flex-fill d-flex align-items-center justify-content-center p-1 border-end position-relative"
+                        class="seat flex-fill d-flex align-items-center justify-content-center p-1 border-end"
                         :class="{
                           'bg-warning-subtle': isIgnored(row, (col - 1) * 2),
                         }"
@@ -223,7 +223,8 @@
                         >
                       </div>
                       <div
-                        class="seat flex-fill d-flex align-items-center justify-content-center p-1 position-relative"
+                        class="seat flex-fill d-flex align-items-center justify-content-center p-1"
+                        v-resize-text
                         :class="{
                           'bg-warning-subtle': isIgnored(
                             row,
@@ -631,6 +632,10 @@ const isIgnored = (row, colIndex) =>
   align-items: center;
 }
 
+.seat {
+  max-width: 110px;
+}
+
 .teacher-desk {
   width: 240px;
   height: 70px;
@@ -659,19 +664,11 @@ const isIgnored = (row, colIndex) =>
   height: 65px;
 }
 
-.student-name {
-  line-height: 1.1;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: center;
-  width: 100%;
-}
-
 .form-select-xs {
   padding: 0.1rem 0.5rem;
   font-size: 0.75rem;
+}
+.student-name {
+  max-width: 100%;
 }
 </style>
