@@ -46,7 +46,6 @@ export function useSeating() {
   const forbiddenDisplay = ref([])
   const response = ref([])
   const error = ref('')
-  const validateErrors = ref([])
   const ignored = ref([])
   const priorities = ref(['Медицинские парты и ряды', 'Предпочитаемые парты и ряды', 'Запрещенные пары', 'Предпочтения учеников по парам'])
   const savedSeatings = ref([])
@@ -76,93 +75,19 @@ export function useSeating() {
     0 : 'Предпочтения учеников по парам', 
   };
 
-
-  const onDragEnd = () => {
-    request.priority = accordionItems.value.map(item => item.priorityValue)
-  }
-
-  const filteredStudents = computed(() => {
-    return request.value.students.filter(student =>
-      student.name.toLowerCase().includes(studentSearch.value.toLowerCase())
-    )
-  })
-
-  const paginatedStudents = computed(() => {
-    const start = (currentPage.value - 1) * perPage.value
-    const end = start + perPage.value
-    return filteredStudents.value.slice(start, end)
-  })
-
-  function initDisplayArrays() {
-    preferencesDisplay.value = request.value.preferences.map(pair =>
-      pair.map(id => getStudentNameById(id))
-    )
-    forbiddenDisplay.value = request.value.forbidden.map(pair =>
-      pair.map(id => getStudentNameById(id))
-    )
-  }
-
-  function getStudentNameById(id) {
-    const student = request.value.students.find(s => s.id === id)
-    return student ? (student.name || `Ученик ${id}`) : ''
-  }
-
-  function getStudentIdByName(name) {
-    if (!name) return null
-    const student = request.value.students.find(s =>
-      (s.name || `Ученик ${s.id}`) === name.trim()
-    )
-    return student ? student.id : null
-  }
-
-  function updateIdFromName(type, pairIndex, studentIndex, name) {
-    const id = getStudentIdByName(name)
-    if (id !== null) {
-      const array = type === 'preferences' ? request.value.preferences : request.value.forbidden
-      array[pairIndex][studentIndex] = id
-      const displayArray = type === 'preferences' ? preferencesDisplay.value : forbiddenDisplay.value
-      displayArray[pairIndex][studentIndex] = name
-    } else if (name === '') {
-      const array = type === 'preferences' ? request.value.preferences : request.value.forbidden
-      array[pairIndex][studentIndex] = null
-      const displayArray = type === 'preferences' ? preferencesDisplay.value : forbiddenDisplay.value
-      displayArray[pairIndex][studentIndex] = ''
-    }
-  }
-
-  function addPreference() {
-    request.value.preferences.push([null, null])
-    preferencesDisplay.value.push(['', ''])
-  }
-
-  function removePreference(index) {
-    request.value.preferences.splice(index, 1)
-    preferencesDisplay.value.splice(index, 1)
-  }
-
-  function addForbidden() {
-    request.value.forbidden.push([null, null])
-    forbiddenDisplay.value.push(['', ''])
-  }
-
-  function removeForbidden(index) {
-    request.value.forbidden.splice(index, 1)
-    forbiddenDisplay.value.splice(index, 1)
-  }
-
-  function validateInput() {
+  const validateErrors = computed(() => {
     const error = []
     const { students, preferences, forbidden, classConfig } = request.value
 
     if (classConfig.rows <= 0) {
-      error.push('Количество парт в ряду должно быть положительным целым числом')
+      error.push('Количество рядов должно быть положительным целым числом')
     }
     if (classConfig.columns <= 0) {
-      error.push('Количество рядов должно быть целым положительным числом')
+      error.push('Количество парт должно быть положительным целым числом')
     }
 
     const studentsIDs = new Map()
-    students.forEach((student, index) => {
+    students.forEach((student) => {
       studentsIDs.set(student.id, student.name)
       parseCommaSeparated(student.preferredRows).forEach((row) => {
         if (row < 0 || row >= classConfig.rows) {
@@ -170,12 +95,14 @@ export function useSeating() {
         }
       })
       parseCommaSeparated(student.preferredColumns).forEach((col) => {
-        if (col < 0 || col >= (classConfig.deskType === 'double' ? classConfig.columns * 2 : classConfig.columns)) {
+        const maxCols = classConfig.deskType === 'double' ? classConfig.columns * 2 : classConfig.columns
+        if (col < 0 || col >= maxCols) {
           error.push(`Недопустимая парта ${col} для ученика ${student.name}`)
         }
       })
       parseCommaSeparated(student.medicalPreferredColumn).forEach((col) => {
-        if (col < 0 || col >= (classConfig.deskType === 'double' ? classConfig.columns * 2 : classConfig.columns)) {
+        const maxCols = classConfig.deskType === 'double' ? classConfig.columns * 2 : classConfig.columns
+        if (col < 0 || col >= maxCols) {
           error.push(`Недопустимая парта ${col} для ученика ${student.name} в медицинских предпочтениях`)
         }
       })
@@ -185,6 +112,23 @@ export function useSeating() {
         }
       })
     })
+
+    const checkDuplicates = (pairs, listName) => {
+      const seen = new Set()
+      pairs.forEach(pair => {
+        if (pair[0] !== null && pair[1] !== null) {
+          const key = JSON.stringify([...pair].sort())
+          if (seen.has(key)) {
+            const n1 = studentsIDs.get(pair[0]) || '?'
+            const n2 = studentsIDs.get(pair[1]) || '?'
+            error.push(`Дублирующаяся пара в ${listName}: ${n1} и ${n2}`)
+          }
+          seen.add(key)
+        }
+      })
+    }
+    checkDuplicates(preferences, 'предпочтениях')
+    checkDuplicates(forbidden, 'запретах')
 
     preferences.forEach((pair) => {
       if (pair[0] === pair[1] && pair[0] !== null) {
@@ -198,28 +142,175 @@ export function useSeating() {
       }
     })
 
-    const preferencePairs = new Set(preferences.map((pair) => `${pair[0]},${pair[1]}`))
-    forbidden.forEach((pair) => {
-      const key = `${pair[0]},${pair[1]}`
-      if (preferencePairs.has(key)) {
-        error.push(`Конфликт между предпочтительными и запрещенными парами: пара ${studentsIDs.get(pair[0])},${studentsIDs.get(pair[1])}`)
+    const prefKeys = new Set(preferences.map(p => JSON.stringify([...p].sort())))
+    forbidden.forEach(pair => {
+      const key = JSON.stringify([...pair].sort())
+      if (prefKeys.has(key) && pair[0] !== null && pair[1] !== null) {
+        const n1 = studentsIDs.get(pair[0])
+        const n2 = studentsIDs.get(pair[1])
+        error.push(`Противоречие: пара ${n1} и ${n2} есть и в желаемых, и в запрещенных`)
       }
     })
 
     if (request.value.popSize < 2 || request.value.popSize > 600) {
-      error.push('Размер популяции должен быть целым положительным числом не меньше 2 и не больше 600')
+      error.push('Размер популяции должен быть от 2 до 600')
     }
     if (request.value.generations < 2 || request.value.generations > 600) {
-      error.push('Количество поколений должно быть целым положительным числом не меньше 2 и не больше 600')
+      error.push('Количество поколений должно быть от 2 до 600')
     }
     if (request.value.crossOverChance < 0 || request.value.crossOverChance > 1) {
-      error.push('Шанс кроссинговера должен лежать в диапазоне (0, 1]')
+      error.push('Шанс кроссинговера должен быть от 0 до 1')
     }
     if (!areAllElementsUnique(request.value.priority)) {
-      error.push('Повторяющиеся элементы в приоритетах параметров оценивания')
+      error.push('Повторяющиеся элементы в приоритетах')
     }
 
     return error
+  })
+
+    const onDragEnd = () => {
+      request.priority = accordionItems.value.map(item => item.priorityValue)
+    }
+
+    const filteredStudents = computed(() => {
+      return request.value.students.filter(student =>
+        student.name.toLowerCase().includes(studentSearch.value.toLowerCase())
+      )
+    })
+
+    const paginatedStudents = computed(() => {
+      const start = (currentPage.value - 1) * perPage.value
+      const end = start + perPage.value
+      return filteredStudents.value.slice(start, end)
+    })
+
+    function initDisplayArrays() {
+      preferencesDisplay.value = request.value.preferences.map(pair =>
+        pair.map(id => getStudentNameById(id))
+      )
+      forbiddenDisplay.value = request.value.forbidden.map(pair =>
+        pair.map(id => getStudentNameById(id))
+      )
+    }
+
+    function getStudentNameById(id) {
+      const student = request.value.students.find(s => s.id === id)
+      return student ? (student.name || `Ученик ${id}`) : ''
+    }
+
+    function getStudentIdByName(name) {
+      if (!name) return null
+      const student = request.value.students.find(s =>
+        (s.name || `Ученик ${s.id}`) === name.trim()
+      )
+      return student ? student.id : null
+    }
+
+    function updateIdFromName(type, pairIndex, studentIndex, name) {
+      const id = getStudentIdByName(name)
+      if (id !== null) {
+        const array = type === 'preferences' ? request.value.preferences : request.value.forbidden
+        array[pairIndex][studentIndex] = id
+        const displayArray = type === 'preferences' ? preferencesDisplay.value : forbiddenDisplay.value
+        displayArray[pairIndex][studentIndex] = name
+      } else if (name === '') {
+        const array = type === 'preferences' ? request.value.preferences : request.value.forbidden
+        array[pairIndex][studentIndex] = null
+        const displayArray = type === 'preferences' ? preferencesDisplay.value : forbiddenDisplay.value
+        displayArray[pairIndex][studentIndex] = ''
+      }
+    }
+
+    function addPreference() {
+      request.value.preferences.push([null, null])
+      preferencesDisplay.value.push(['', ''])
+    }
+
+    function removePreference(index) {
+      request.value.preferences.splice(index, 1)
+      preferencesDisplay.value.splice(index, 1)
+    }
+
+    function addForbidden() {
+      request.value.forbidden.push([null, null])
+      forbiddenDisplay.value.push(['', ''])
+    }
+
+    function removeForbidden(index) {
+      request.value.forbidden.splice(index, 1)
+      forbiddenDisplay.value.splice(index, 1)
+    }
+
+    function validateInput() {
+      const error = []
+      const { students, preferences, forbidden, classConfig } = request.value
+
+      if (classConfig.rows <= 0) {
+        error.push('Количество парт в ряду должно быть положительным целым числом')
+      }
+      if (classConfig.columns <= 0) {
+        error.push('Количество рядов должно быть целым положительным числом')
+      }
+
+      const studentsIDs = new Map()
+      students.forEach((student, index) => {
+        studentsIDs.set(student.id, student.name)
+        parseCommaSeparated(student.preferredRows).forEach((row) => {
+          if (row < 0 || row >= classConfig.rows) {
+            error.push(`Недопустимый ряд ${row} для ученика ${student.name}`)
+          }
+        })
+        parseCommaSeparated(student.preferredColumns).forEach((col) => {
+          if (col < 0 || col >= (classConfig.deskType === 'double' ? classConfig.columns * 2 : classConfig.columns)) {
+            error.push(`Недопустимая парта ${col} для ученика ${student.name}`)
+          }
+        })
+        parseCommaSeparated(student.medicalPreferredColumn).forEach((col) => {
+          if (col < 0 || col >= (classConfig.deskType === 'double' ? classConfig.columns * 2 : classConfig.columns)) {
+            error.push(`Недопустимая парта ${col} для ученика ${student.name} в медицинских предпочтениях`)
+          }
+        })
+        parseCommaSeparated(student.medicalPreferredRow).forEach((row) => {
+          if (row < 0 || row >= classConfig.rows) {
+            error.push(`Недопустимый ряд ${row} для ученика ${student.name} в медицинских предпочтениях`)
+          }
+        })
+      })
+
+      preferences.forEach((pair) => {
+        if (pair[0] === pair[1] && pair[0] !== null) {
+          error.push(`${studentsIDs.get(pair[0])} не может хотеть сидеть сам с собой`)
+        }
+      })
+
+      forbidden.forEach((pair) => {
+        if (pair[0] === pair[1] && pair[0] !== null) {
+          error.push(`${studentsIDs.get(pair[0])} не может не сидеть сам с собой`)
+        }
+      })
+
+      const preferencePairs = new Set(preferences.map((pair) => `${pair[0]},${pair[1]}`))
+      forbidden.forEach((pair) => {
+        const key = `${pair[0]},${pair[1]}`
+        if (preferencePairs.has(key)) {
+          error.push(`Конфликт между предпочтительными и запрещенными парами: пара ${studentsIDs.get(pair[0])},${studentsIDs.get(pair[1])}`)
+        }
+      })
+
+      if (request.value.popSize < 2 || request.value.popSize > 600) {
+        error.push('Размер популяции должен быть целым положительным числом не меньше 2 и не больше 600')
+      }
+      if (request.value.generations < 2 || request.value.generations > 600) {
+        error.push('Количество поколений должно быть целым положительным числом не меньше 2 и не больше 600')
+      }
+      if (request.value.crossOverChance < 0 || request.value.crossOverChance > 1) {
+        error.push('Шанс кроссинговера должен лежать в диапазоне (0, 1]')
+      }
+      if (!areAllElementsUnique(request.value.priority)) {
+        error.push('Повторяющиеся элементы в приоритетах параметров оценивания')
+      }
+
+      return error
   }
 
   function addStudent() {
@@ -243,13 +334,6 @@ export function useSeating() {
 
   async function generateSeating() {
     closeAll()
-    error.value = ''
-    const validationErrors = validateInput()
-    if (validationErrors.length) {
-      error.value = 'Найдены ошибки во входных данных:'
-      validateErrors.value = validationErrors
-      return
-    }
     response.value = []
 
     const requestData = {

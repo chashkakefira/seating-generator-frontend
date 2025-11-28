@@ -127,8 +127,10 @@
             </button>
           </div>
 
-          <div v-if="error" class="alert alert-danger mt-3 small">
-            {{ error }}
+          <div
+            v-if="validateErrors.length"
+            class="alert alert-danger mt-3 small"
+          >
             <ul v-if="validateErrors.length" class="mb-0 ps-3 mt-1">
               <li v-for="e in validateErrors" :key="e">{{ e }}</li>
             </ul>
@@ -523,11 +525,17 @@ const {
 const isGenerating = ref(false);
 
 const handleGenerate = async () => {
+  if (validateErrors.value.length > 0) {
+    error.value = "Исправьте ошибки ввода перед генерацией";
+    return;
+  }
   isGenerating.value = true;
-  await generateSeating();
-  isGenerating.value = false;
+  try {
+    await generateSeating();
+  } finally {
+    isGenerating.value = false;
+  }
 };
-
 const scale = ref(1);
 const translateX = ref(0);
 const translateY = ref(0);
