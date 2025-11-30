@@ -1,0 +1,1 @@
+<template>Страница классов</template>
