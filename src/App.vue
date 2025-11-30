@@ -17,10 +17,12 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-              <router-link class="nav-link" to="/">Рассажировка</router-link>
+              <router-link class="nav-link" to="/">Рассадка</router-link>
             </li>
             <li class="nav-item">
-              <router-link class="nav-link" to="/classes">Классы</router-link>
+              <router-link class="nav-link" to="/classes-list"
+                >Классы</router-link
+              >
             </li>
           </ul>
         </div>
