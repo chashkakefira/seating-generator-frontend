@@ -1,10 +1,10 @@
-export function useClasses()
+import { ref } from 'vue';
+const classes = ref([]);
+const currentClass = ref(null);
+export default function useClasses()
 {
-    const classes = ref([]);
     const selectedClassId = ref('');
     const newClassName = ref('');
-    const currentClass = ref(null);
-
     const saveClasses = () => {
         localStorage.setItem('Classes', JSON.stringify(classes));
     };
@@ -23,5 +23,14 @@ export function useClasses()
             classes.value.splice(idx, 1);
             saveClasses();
         }
+    };
+    return {
+        classes,
+        selectedClassId,
+        newClassName,
+        currentClass,
+        saveClasses,
+        addNewClass,
+        deleteClass,
     };
 }
