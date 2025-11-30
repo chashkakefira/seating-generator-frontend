@@ -11,7 +11,7 @@ const router = createRouter({
     routes: [
         {path: '/', component: Home},
         {path: '/classes-list', component: ClassesList},
-        {path: '/class/:id', component: ClassEditor, props: true},
+        {path: '/class/:id', name: 'ClassEditor', component: ClassEditor, props: true},
     ]
 })
 const app = createApp(App);

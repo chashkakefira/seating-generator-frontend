@@ -1,12 +1,12 @@
 import { ref } from 'vue';
-const classes = ref([]);
+const classes = ref([{id: 1, students: ["Николай", "Женя", "Татьяна", "Иван"], name: "Физмат 10А"},]);
 const currentClass = ref(null);
-export default function useClassesList()
+export default function useClasses()
 {
     const selectedClassId = ref('');
     const newClassName = ref('');
     const saveClasses = () => {
-        localStorage.setItem('Classes', JSON.stringify(classes));
+        localStorage.setItem('Classes', JSON.stringify(classes.value));
     };
     const loadClass = () => {
         const saved = localStorage.getItem('Classes');
