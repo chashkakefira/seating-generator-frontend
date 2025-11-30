@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 const classes = ref([]);
 const currentClass = ref(null);
-export default function useClasses()
+export default function useClassesList()
 {
     const selectedClassId = ref('');
     const newClassName = ref('');

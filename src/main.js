@@ -4,12 +4,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import App from './App.vue'
 import Home from './Home.vue';
-import Classes from './Classes.vue'
+import ClassesList from './ClassesList.vue'
+import ClassEditor from './ClassEditor.vue';
 const router = createRouter({
     history: createWebHistory(),
     routes: [
         {path: '/', component: Home},
-        {path: '/classes', component: Classes}
+        {path: '/classes-list', component: ClassesList},
+        {path: '/class/:id', component: ClassEditor, props: true},
     ]
 })
 const app = createApp(App);
