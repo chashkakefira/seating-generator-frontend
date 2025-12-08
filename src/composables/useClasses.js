@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-const classes = ref([{id: 1, students: ["Николай", "Женя", "Татьяна", "Иван"], name: "Физмат 10А"},]);
+const classes = ref([]);
 const currentClass = ref(null);
 export default function useClasses()
 {
@@ -8,7 +8,7 @@ export default function useClasses()
     const saveClasses = () => {
         localStorage.setItem('Classes', JSON.stringify(classes.value));
     };
-    const loadClass = () => {
+    const loadClasses = () => {
         const saved = localStorage.getItem('Classes');
         classes.value = saved ? JSON.parse(saved) : [];
     };
@@ -32,5 +32,6 @@ export default function useClasses()
         saveClasses,
         addNewClass,
         deleteClass,
+        loadClasses,
     };
 }
