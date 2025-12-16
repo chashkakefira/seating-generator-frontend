@@ -1,6 +1,8 @@
 <template>
-  <div id="app">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+  <div id="app" class="d-flex flex-column vh-100">
+    <nav
+      class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm flex-shrink-0"
+    >
       <div class="container-fluid">
         <router-link class="navbar-brand fw-bold" to="/">
           <i class="bi bi-grid-3x3-gap-fill me-2"></i>
@@ -29,7 +31,7 @@
       </div>
     </nav>
 
-    <main class="container-fluid">
+    <main class="container-fluid flex-grow-1 overflow-hidden position-relative">
       <router-view />
     </main>
   </div>

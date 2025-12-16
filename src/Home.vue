@@ -1,12 +1,11 @@
 <template>
   <BApp>
-    <BContainer fluid class="main-container">
+    <BContainer fluid class="main-container p-0 h-100">
       <BRow class="h-100">
         <BCol
           md="3"
           lg="3"
           class="settings-panel bg-light border-end p-3 overflow-auto"
-          style="max-height: 92vh"
         >
           <h5 class="mb-3 text-muted">Конфигурация</h5>
           <div class="card shadow-sm mb-3">
@@ -153,7 +152,7 @@
             </button>
           </div>
           <div
-            class="position-absolute bottom-0 start-0 m-3 z-0 text-muted small user-select-none"
+            class="position-absolute bottom-0 start-0 m-3 z-3 text-muted small user-select-none"
           >
             <i class="bi bi-arrows-move"></i> Тяните мышкой для перемещения
           </div>
