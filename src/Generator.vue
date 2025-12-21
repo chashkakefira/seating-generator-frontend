@@ -9,45 +9,95 @@
         >
           <BAccordion class="mb-3 shadow-sm" flush>
             <BAccordionItem title="⚙️ Алгоритм и Приоритеты">
-              <div class="p-1">
-                <label class="small text-muted mt-2"
-                  >Приоритеты (Сверху = важнее)</label
+              <div class="slider-group mb-4">
+                <label
+                  class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
                 >
-                <draggable
-                  v-model="request.priority"
-                  item-key="element => element"
-                  class="list-group"
+                  <span>Медицина</span>
+                  <span class="badge bg-primary fs-6">{{
+                    priorities.medical
+                  }}</span>
+                </label>
+                <input
+                  type="range"
+                  class="form-range"
+                  v-model.number="priorities.medical"
+                  min="0"
+                  max="10"
+                  step="0.5"
+                />
+              </div>
+
+              <div class="slider-group mb-4">
+                <label
+                  class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
                 >
-                  <template #item="{ element }">
-                    <div
-                      class="drag-item list-group-item d-flex align-items-center mb-1 p-2"
-                    >
-                      <span class="handle me-2" style="cursor: grab"
-                        >&#9776;</span
-                      >
-                      <span>{{ accordionItems[element] }}</span>
-                    </div>
-                  </template>
-                </draggable>
-                <hr class="my-2" />
-                <label class="small text-muted">Точность (Популяция)</label>
+                  <span>Друзья вместе</span>
+                  <span class="badge bg-success fs-6">{{
+                    priorities.friends
+                  }}</span>
+                </label>
                 <input
-                  v-model.number="request.popSize"
-                  type="number"
-                  class="form-control form-control-sm mb-2"
+                  type="range"
+                  class="form-range"
+                  v-model.number="priorities.friends"
+                  min="0"
+                  max="10"
+                  step="0.5"
                 />
-                <label class="small text-muted">Поколения</label>
+              </div>
+
+              <div class="slider-group mb-4">
+                <label
+                  class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
+                >
+                  <span>Запрещенные пары</span>
+                  <span class="badge bg-danger fs-6">{{
+                    priorities.enemies
+                  }}</span>
+                </label>
                 <input
-                  v-model.number="request.generations"
-                  type="number"
-                  class="form-control form-control-sm mb-2"
+                  type="range"
+                  class="form-range"
+                  v-model.number="priorities.enemies"
+                  min="0"
+                  max="10"
+                  step="0.5"
                 />
-                <label class="small text-muted">Мутация (0-1)</label>
+              </div>
+
+              <div class="slider-group mb-4">
+                <label
+                  class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
+                >
+                  <span>Предпочтения по рядам и партам</span>
+                  <span class="badge bg-warning fs-6">{{
+                    priorities.preferences
+                  }}</span>
+                </label>
                 <input
-                  v-model.number="request.crossOverChance"
-                  type="number"
-                  step="0.1"
-                  class="form-control form-control-sm"
+                  type="range"
+                  class="form-range"
+                  v-model.number="priorities.preferences"
+                  min="0"
+                  max="10"
+                  step="0.5"
+                />
+              </div>
+              <div class="slider-group mb-4">
+                <label
+                  class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
+                >
+                  <span>Плотность заполнения</span>
+                  <span class="badge bg-info fs-6">{{ priorities.fill }}</span>
+                </label>
+                <input
+                  type="range"
+                  class="form-range"
+                  v-model.number="priorities.fill"
+                  min="0"
+                  max="10"
+                  step="0.5"
                 />
               </div>
             </BAccordionItem>
@@ -268,6 +318,7 @@ const {
   clearData,
   saveStudent,
   accordionItems,
+  priorities,
 } = useSeating();
 
 const isGenerating = ref(false);

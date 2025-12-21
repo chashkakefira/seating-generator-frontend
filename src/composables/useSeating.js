@@ -3,7 +3,6 @@ import axios from 'axios'
 
 export function useSeating() {
   const request = ref({
-    priority: [3, 2, 1, 0],
     popSize: 300,
     generations: 400,
     crossOverChance: 0.3,
@@ -14,7 +13,6 @@ export function useSeating() {
   const response = ref([])
   const error = ref('')
   const ignored = ref([])
-  const priorities = ref(['Медицинские парты и ряды', 'Предпочитаемые парты и ряды', 'Запрещенные пары', 'Предпочтения учеников по парам'])
   const savedSeatings = ref([])
   const chosenIndex = ref(0)
   const chosenStudentID = ref(null)
@@ -25,6 +23,13 @@ export function useSeating() {
   const editingStudent = ref(null)
   const modalStudent = ref({ name: '', preferredRows: '', preferredColumns: '', medicalPreferredRow: '', medicalPreferredColumn: '' })
   const fitness = ref(0)
+  const priorities = ref({
+    medical: 8.0,
+    friends: 6.5, 
+    enemies: 7.0,
+    preferences: 3.0,
+    fill: 3.0,
+  })
 
   const studentFields = ref([
     { key: 'name', label: 'Имя' },
@@ -329,7 +334,13 @@ export function useSeating() {
       popSize: request.value.popSize,
       generations: request.value.generations,
       crossOverChance: request.value.crossOverChance,
-      priority: request.value.priority,
+      PriorityWeights : {
+        Medical:      priorities.value.medical,
+        Friends:      priorities.value.friends,
+        Enemies:      priorities.value.enemies,
+        Preferences:  priorities.value.preferences,
+        Fill:         priorities.value.fill,
+      },
     }
 
     try {
