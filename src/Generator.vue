@@ -7,45 +7,6 @@
           lg="3"
           class="settings-panel bg-light border-end p-3 overflow-auto"
         >
-          <h5 class="mb-3 text-muted">Конфигурация</h5>
-          <div class="card shadow-sm mb-3">
-            <div class="card-body p-3">
-              <div class="mb-3">
-                <label class="form-label small fw-bold">Размер класса</label>
-                <div class="d-flex gap-2">
-                  <div class="flex-grow-1">
-                    <small class="text-muted d-block">Ряды</small>
-                    <input
-                      v-model.number="request.classConfig.rows"
-                      type="number"
-                      class="form-control form-control-sm"
-                      min="1"
-                    />
-                  </div>
-                  <div class="flex-grow-1">
-                    <small class="text-muted d-block">Парты</small>
-                    <input
-                      v-model.number="request.classConfig.columns"
-                      type="number"
-                      class="form-control form-control-sm"
-                      min="1"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div class="mb-0">
-                <label class="form-label small fw-bold">Парты</label>
-                <select
-                  v-model="request.classConfig.deskType"
-                  class="form-select form-select-sm"
-                >
-                  <option value="single">Одиночные</option>
-                  <option value="double">Двойные</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
           <BAccordion class="mb-3 shadow-sm" flush>
             <BAccordionItem title="⚙️ Алгоритм и Приоритеты">
               <div class="p-1">
@@ -121,11 +82,7 @@
           </div>
         </BCol>
 
-        <BCol
-          md="6"
-          lg="6"
-          class="p-0 position-relative bg-secondary-subtle overflow-hidden"
-        >
+        <BCol class="p-0 position-relative bg-secondary-subtle overflow-hidden">
           <div
             class="canvas-controls position-absolute top-0 end-0 m-3 btn-group shadow bg-white rounded z-3"
           >
@@ -237,183 +194,6 @@
             </div>
           </div>
         </BCol>
-
-        <BCol
-          md="3"
-          lg="3"
-          class="data-panel bg-white border-start p-0 d-flex flex-column overflow-auto"
-          style="height: 92vh"
-        >
-          <BTabs content-class="mt-3">
-            <div
-              class="tab-content flex-grow-1 overflow-hidden d-flex flex-column"
-            >
-              <BTab title="Ученки" active class="overflow-hidden">
-                <div class="p-2 border-bottom bg-light">
-                  <div class="input-group input-group-sm">
-                    <span class="input-group-text">
-                      <iBiSearch />
-                    </span>
-                    <input
-                      v-model="studentSearch"
-                      class="form-control"
-                      placeholder="Поиск..."
-                    />
-                    <button class="btn btn-primary" @click="addStudent">
-                      <iBiPersonFillAdd />
-                    </button>
-                  </div>
-                </div>
-                <div class="overflow-hidden flex-grow-1 p-2">
-                  <BPagination
-                    v-model="currentPage"
-                    :total-rows="filteredStudents.length"
-                    :per-page="perPage"
-                    size="sm"
-                    class="justify-content-center mt-2"
-                  />
-                  <div
-                    v-for="student in paginatedStudents"
-                    :key="student.id"
-                    class="student-card card mb-2 shadow-sm border-0"
-                  >
-                    <div
-                      class="card-body p-2 d-flex justify-content-between align-items-center"
-                    >
-                      <div>
-                        <div
-                          class="fw-bold text-truncate"
-                          style="max-width: 140px"
-                        >
-                          {{ student.name || "Без имени" }}
-                        </div>
-                        <small class="text-muted" v-if="student.preferredRows"
-                          >Ряд: {{ student.preferredRows }}</small
-                        >
-                      </div>
-                      <div class="btn-group btn-group-sm">
-                        <button
-                          class="btn btn-light text-primary"
-                          @click="openEditModal(student)"
-                        >
-                          <IBiPencil />
-                        </button>
-                        <button
-                          class="btn btn-light text-danger"
-                          @click="removeStudent(student.id)"
-                        >
-                          <iBiTrash />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </BTab>
-              <BTab title="Предпочтения" class="p-2">
-                <h6 class="fw-bold text-success">
-                  <i class="bi bi-heart-fill me-1"></i>Предпочтения
-                </h6>
-                <div
-                  v-for="(pref, i) in request.preferences"
-                  :key="'p' + i"
-                  class="card mb-2 bg-success-subtle border-0"
-                >
-                  <div class="card-body p-2 d-flex gap-1 align-items-center">
-                    <input
-                      class="form-control form-control-sm border-0"
-                      v-model="preferencesDisplay[i][0]"
-                      placeholder="Кто"
-                      @blur="
-                        updateIdFromName(
-                          'preferences',
-                          i,
-                          0,
-                          $event.target.value
-                        )
-                      "
-                      list="s-list"
-                    />
-                    <span>+</span>
-                    <input
-                      class="form-control form-control-sm border-0"
-                      v-model="preferencesDisplay[i][1]"
-                      placeholder="С кем"
-                      @blur="
-                        updateIdFromName(
-                          'preferences',
-                          i,
-                          1,
-                          $event.target.value
-                        )
-                      "
-                      list="s-list"
-                    />
-                    <button
-                      class="btn btn-sm text-danger"
-                      @click="removePreference(i)"
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-                <button
-                  class="btn btn-sm btn-outline-success w-100 mb-4"
-                  @click="addPreference"
-                >
-                  + Добавить пару
-                </button>
-                <h6 class="fw-bold text-danger">
-                  <i class="bi bi-slash-circle-fill me-1"></i>Запреты
-                </h6>
-                <div
-                  v-for="(forb, i) in request.forbidden"
-                  :key="'f' + i"
-                  class="card mb-2 bg-danger-subtle border-0"
-                >
-                  <div class="card-body p-2 d-flex gap-1 align-items-center">
-                    <input
-                      class="form-control form-control-sm border-0"
-                      v-model="forbiddenDisplay[i][0]"
-                      placeholder="Кто"
-                      @blur="
-                        updateIdFromName('forbidden', i, 0, $event.target.value)
-                      "
-                      list="s-list"
-                    />
-                    <span>≠</span>
-                    <input
-                      class="form-control form-control-sm border-0"
-                      v-model="forbiddenDisplay[i][1]"
-                      placeholder="С кем"
-                      @blur="
-                        updateIdFromName('forbidden', i, 1, $event.target.value)
-                      "
-                      list="s-list"
-                    />
-                    <button
-                      class="btn btn-sm text-danger"
-                      @click="removeForbidden(i)"
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-                <button
-                  class="btn btn-sm btn-outline-danger w-100"
-                  @click="addForbidden"
-                >
-                  + Добавить запрет
-                </button>
-                <datalist id="s-list">
-                  <option
-                    v-for="s in request.students"
-                    :value="s.name"
-                  ></option>
-                </datalist>
-              </BTab>
-            </div>
-          </BTabs>
-        </BCol>
       </BRow>
     </BContainer>
 
@@ -466,47 +246,60 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useSeating } from "./composables/useSeating";
+import useClasses from "./composables/useClasses";
+import { useRoute, useRouter } from "vue-router";
 import draggable from "vuedraggable";
-
+const route = useRoute();
+const router = useRouter();
+const { classes, loadClasses } = useClasses();
 const {
   request,
-  response,
-  fitness,
   ignored,
   error,
   validateErrors,
-  studentSearch,
-  paginatedStudents,
-  filteredStudents,
-  currentPage,
-  perPage,
   showModal,
   modalStudent,
   editingStudent,
-  studentFields,
-  validateName,
   generateSeating,
   getStudentName,
   getStudentID,
   clearData,
-  openEditModal,
-  removeStudent,
-  addStudent,
   saveStudent,
   accordionItems,
-  onDragEnd,
-  preferencesDisplay,
-  forbiddenDisplay,
-  addPreference,
-  removePreference,
-  addForbidden,
-  removeForbidden,
-  updateIdFromName,
 } = useSeating();
 
 const isGenerating = ref(false);
+
+onMounted(async () => {
+  await loadClasses();
+  const classId = route.params.id;
+  const targetClass = classes.value.find((c) => c.id == classId);
+  if (!targetClass) {
+    alert("Класс не найден!");
+    router.push("/");
+    return;
+  }
+  if (targetClass.classConfig) {
+    request.value.classConfig = JSON.parse(
+      JSON.stringify(targetClass.classConfig)
+    );
+  }
+
+  if (targetClass.students) {
+    request.value.students = JSON.parse(JSON.stringify(targetClass.students));
+  }
+
+  if (targetClass.preferences)
+    request.value.preferences = JSON.parse(
+      JSON.stringify(targetClass.preferences)
+    );
+  if (targetClass.forbidden)
+    request.value.forbidden = JSON.parse(JSON.stringify(targetClass.forbidden));
+
+  console.log(`Класс ${targetClass.name} загружен в генератор`);
+});
 
 const handleGenerate = async () => {
   if (validateErrors.value.length > 0) {

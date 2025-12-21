@@ -10,111 +10,436 @@
     </div>
 
     <BTabs content-class="mt-3">
-      <BTab title="Ученики" active>
-        <div class="mb-2">
-          <BButton variant="success" @click="addStudent"
-            >+ Добавить ученика</BButton
+      <BTab title="Ученики" class="p-4 bg-light">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h5 class="fw-bold mb-1">Список класса</h5>
+            <div class="text-muted small">
+              Всего учеников: {{ cls.students.length }}
+            </div>
+          </div>
+        </div>
+        <div v-if="!cls.students?.length" class="text-center py-5 text-muted">
+          <div class="display-1 text-muted opacity-25 mb-3">
+            <i-bi-people />
+          </div>
+          <p>В классе пока никого нет.</p>
+          <BButton variant="outline-primary" size="sm" @click="addStudent"
+            >Добавить первого</BButton
           >
         </div>
 
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped align-middle">
-            <thead class="table-light">
-              <tr>
-                <th style="width: 25%">Имя</th>
-                <th>Предпочитаемые ряды</th>
-                <th>Предпочитаемые парты</th>
-                <th class="text-danger">Медицинские ряды</th>
-                <th class="text-danger">Медицинские парты</th>
-                <th style="width: 50px"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(student, index) in cls.students" :key="index">
-                <td>
-                  <BFormInput
-                    v-model="student.name"
-                    size="sm"
-                    placeholder="Имя"
-                  />
-                </td>
-                <td>
-                  <div class="d-flex gap-1">
-                    <BFormInput v-model="student.preferredRows" size="sm" />
-                    <BButton
-                      size="sm"
-                      variant="outline-primary"
-                      @click="openVisualizer(student, 'prefs')"
-                      >🗺️</BButton
-                    >
-                  </div>
-                </td>
-                <td>
-                  <BFormInput v-model="student.preferredColumns" size="sm" />
-                </td>
-                <td>
-                  <div class="d-flex gap-1">
-                    <BFormInput
-                      v-model="student.medicalPreferredRow"
-                      size="sm"
-                    />
-                    <BButton
-                      size="sm"
-                      variant="outline-danger"
-                      @click="openVisualizer(student, 'medical')"
-                      >🏥</BButton
-                    >
-                  </div>
-                </td>
-                <td>
-                  <BFormInput
-                    v-model="student.medicalPreferredColumn"
-                    size="sm"
-                  />
-                </td>
-                <td>
-                  <BButton
-                    size="sm"
-                    variant="outline-danger"
-                    @click="cls.students.splice(index, 1)"
-                    >&times;</BButton
-                  >
-                </td>
-              </tr>
-              <tr v-if="!cls.students?.length">
-                <td colspan="6" class="text-center text-muted p-3">
-                  Список пуст. Нажмите "Добавить ученика"
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div
+          v-else
+          class="d-flex flex-column gap-3"
+          style="
+            max-height: 60vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+          "
+        >
+          <div
+            v-for="(student, index) in cls.students"
+            :key="index"
+            class="bg-white rounded-3 shadow-sm border p-3 d-flex align-items-center gap-4 position-relative group-hover-action"
+            style="transition: transform 0.2s"
+          >
+            <div
+              class="text-muted fw-bold opacity-25 small"
+              style="min-width: 20px"
+            >
+              {{ index + 1 }}
+            </div>
+
+            <div style="flex: 2; min-width: 200px">
+              <label class="small text-muted mb-1 d-block">Имя</label>
+              <BFormInput
+                v-model="student.name"
+                class="border-0 bg-light fw-bold text-dark px-3 py-2"
+                placeholder="Введите имя..."
+              />
+            </div>
+
+            <div
+              class="bg-primary-subtle rounded p-2 d-flex gap-3 align-items-center"
+              style="flex: 3"
+            >
+              <div class="d-flex flex-column" style="flex: 1">
+                <label class="tiny-label text-primary fw-bold mb-1"
+                  >Парты</label
+                >
+                <BFormInput
+                  v-model="student.preferredRows"
+                  size="sm"
+                  class="border-primary-subtle bg-white text-center"
+                  placeholder="Любой"
+                />
+              </div>
+              <div class="d-flex flex-column" style="flex: 1">
+                <label class="tiny-label text-primary fw-bold mb-1">Ряды</label>
+                <BFormInput
+                  v-model="student.preferredColumns"
+                  size="sm"
+                  class="border-primary-subtle bg-white text-center"
+                  placeholder="Любая"
+                />
+              </div>
+              <BButton
+                variant="white"
+                size="sm"
+                class="text-primary border-0 rounded-circle shadow-sm"
+                style="width: 32px; height: 32px"
+                @click="openVisualizer(student, 'prefs')"
+                title="Выбрать на схеме"
+              >
+                <i-bi-map-fill />
+              </BButton>
+            </div>
+
+            <div
+              class="bg-danger-subtle rounded p-2 d-flex gap-3 align-items-center"
+              style="flex: 3"
+            >
+              <div class="d-flex flex-column" style="flex: 1">
+                <label class="tiny-label text-danger fw-bold mb-1"
+                  >Медицинские парты</label
+                >
+                <BFormInput
+                  v-model="student.medicalPreferredRow"
+                  size="sm"
+                  class="border-danger-subtle bg-white text-center"
+                  placeholder="-"
+                />
+              </div>
+              <div class="d-flex flex-column" style="flex: 1">
+                <label class="tiny-label text-danger fw-bold mb-1"
+                  >Медицинские ряды</label
+                >
+                <BFormInput
+                  v-model="student.medicalPreferredColumn"
+                  size="sm"
+                  class="border-danger-subtle bg-white text-center"
+                  placeholder="-"
+                />
+              </div>
+              <BButton
+                variant="white"
+                size="sm"
+                class="text-danger border-0 rounded-circle shadow-sm"
+                style="width: 32px; height: 32px"
+                @click="openVisualizer(student, 'medical')"
+                title="Выбрать на схеме"
+              >
+                <i-bi-heart-pulse-fill />
+              </BButton>
+            </div>
+
+            <div>
+              <BButton
+                variant="outline-secondary"
+                size="sm"
+                class="border-0 text-muted hover-danger"
+                @click="cls.students.splice(index, 1)"
+              >
+                <i-bi-trash />
+              </BButton>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="cls.students.length > 5" class="text-center mt-4">
+          <BButton
+            variant="outline-primary"
+            @click="addStudent"
+            class="rounded-pill px-4"
+          >
+            <i-bi-person-plus-fill /> Добавить
+          </BButton>
         </div>
       </BTab>
 
-      <BTab title="Параметры класса">
-        <BCard style="max-width: 30rem">
-          <BFormGroup label="Имя класса">
-            <BFormInput v-model="cls.name"></BFormInput>
-          </BFormGroup>
-          <BFormGroup label="Количество рядов">
-            <BFormInput type="number" v-model.number="cls.classConfig.rows" />
-          </BFormGroup>
-          <BFormGroup label="Парт в ряду">
-            <BFormInput
-              type="number"
-              v-model.number="cls.classConfig.columns"
-            />
-          </BFormGroup>
-          <BFormGroup label="Тип парт">
-            <BFormSelect
-              v-model="cls.classConfig.deskType"
-              :options="[
-                { value: 'double', text: 'Двойные' },
-                { value: 'single', text: 'Одинарные' },
-              ]"
-            />
-          </BFormGroup>
-        </BCard>
+      <BTab title="Предпочтения" class="p-4">
+        <datalist id="students-list">
+          <option v-for="s in cls.students" :key="s.id" :value="s.name" />
+        </datalist>
+
+        <div class="row g-5">
+          <div class="col-md-6">
+            <div
+              class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2"
+            >
+              <h6 class="text-success fw-bold m-0">
+                <i class="bi bi-heart-fill me-2"></i>Вместе
+              </h6>
+              <BBadge variant="success" pill>{{
+                cls.preferences.length
+              }}</BBadge>
+            </div>
+
+            <div class="d-flex flex-column gap-2">
+              <div
+                v-for="(p, i) in cls.preferences"
+                :key="'p' + i"
+                class="d-flex align-items-center gap-2 bg-light rounded p-2 border-start border-4 border-success position-relative group"
+              >
+                <BFormInput
+                  v-model="p[0]"
+                  :state="checkName(p[0], cls)"
+                  list="students-list"
+                  autocomplete="off"
+                  placeholder="Кто"
+                  class="border-0 bg-transparent shadow-none"
+                />
+
+                <i class="bi bi-plus-lg text-success small"></i>
+
+                <BFormInput
+                  v-model="p[1]"
+                  :state="checkName(p[1], cls)"
+                  list="students-list"
+                  autocomplete="off"
+                  placeholder="С кем"
+                  class="border-0 bg-transparent shadow-none"
+                />
+
+                <BButton
+                  variant="link"
+                  class="text-secondary p-0 px-2"
+                  @click="cls.preferences.splice(i, 1)"
+                  title="Удалить"
+                >
+                  <i-bi-trash />
+                </BButton>
+              </div>
+
+              <BButton
+                variant="outline-success"
+                size="sm"
+                @click="cls.preferences.push(['', ''])"
+                class="mt-2 border-dashed opacity-75"
+              >
+                + Добавить пару
+              </BButton>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div
+              class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2"
+            >
+              <h6 class="text-danger fw-bold m-0">
+                <i class="bi bi-slash-circle-fill me-2"></i>Раздельно
+              </h6>
+              <BBadge variant="danger" pill>{{
+                cls.forbidden?.length || 0
+              }}</BBadge>
+            </div>
+
+            <div class="d-flex flex-column gap-2">
+              <div
+                v-for="(f, i) in cls.forbidden"
+                :key="'f' + i"
+                class="d-flex align-items-center gap-2 bg-light rounded p-2 border-start border-4 border-danger position-relative group"
+              >
+                <BFormInput
+                  v-model="f[0]"
+                  :state="checkName(f[0], cls)"
+                  list="students-list"
+                  autocomplete="off"
+                  placeholder="Кто"
+                  class="border-0 bg-transparent shadow-none"
+                />
+
+                <span class="text-danger fw-bold small">/</span>
+
+                <BFormInput
+                  v-model="f[1]"
+                  :state="checkName(f[1], cls)"
+                  list="students-list"
+                  autocomplete="off"
+                  placeholder="С кем"
+                  class="border-0 bg-transparent shadow-none"
+                />
+
+                <BButton
+                  variant="link"
+                  class="text-secondary p-0 px-2"
+                  @click="cls.forbidden.splice(i, 1)"
+                  title="Удалить"
+                >
+                  <i-bi-trash />
+                </BButton>
+              </div>
+
+              <BButton
+                variant="outline-danger"
+                size="sm"
+                @click="(cls.forbidden || (cls.forbidden = [])).push(['', ''])"
+                class="mt-2 border-dashed opacity-75"
+              >
+                + Добавить запрет
+              </BButton>
+            </div>
+          </div>
+        </div>
+      </BTab>
+
+      <BTab title="Настройки" class="p-4">
+        <div class="row justify-content-center">
+          <div class="col-md-8 col-lg-6">
+            <div class="mb-5">
+              <h6 class="text-muted text-uppercase small fw-bold mb-3 ls-1">
+                Основная информация
+              </h6>
+              <div
+                class="bg-light p-4 rounded-3 border-start border-4 border-primary shadow-sm"
+              >
+                <BFormGroup
+                  label="Название класса"
+                  label-class="fw-bold text-dark small mb-1"
+                >
+                  <BFormInput
+                    v-model="cls.name"
+                    size="lg"
+                    placeholder="Например: 10 'А'"
+                    class="border-0 bg-white shadow-none fw-bold text-primary"
+                  />
+                </BFormGroup>
+              </div>
+            </div>
+            <div>
+              <h6 class="text-muted text-uppercase small fw-bold mb-3 ls-1">
+                Геометрия кабинета
+              </h6>
+              <div class="bg-white p-4 rounded-3 border shadow-sm">
+                <div class="row g-4">
+                  <div class="col-6">
+                    <label class="d-block small text-muted mb-2">Ряды</label>
+                    <div class="d-flex align-items-center gap-3">
+                      <div
+                        class="bg-light rounded-circle p-2 text-primary d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px"
+                      >
+                        <i-bi-grid />
+                      </div>
+                      <BFormInput
+                        type="number"
+                        v-model.number="cls.classConfig.columns"
+                        min="1"
+                        class="form-control-lg border-0 bg-light fw-bold"
+                        style="max-width: 80px; text-align: center"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <label class="d-block small text-muted mb-2"
+                      >Парт в ряду</label
+                    >
+                    <div class="d-flex align-items-center gap-3">
+                      <div
+                        class="bg-light rounded-circle p-2 text-primary d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px"
+                      >
+                        <i-bi-distribute-vertical />
+                      </div>
+                      <BFormInput
+                        type="number"
+                        v-model.number="cls.classConfig.rows"
+                        min="1"
+                        class="form-control-lg border-0 bg-light fw-bold"
+                        style="max-width: 80px; text-align: center"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <hr class="text-muted opacity-25 my-2" />
+                  </div>
+                  <div class="col-12">
+                    <label class="d-block small text-muted mb-2"
+                      >Тип рассадки</label
+                    >
+                    <div class="d-flex gap-3">
+                      <div
+                        class="flex-fill border rounded p-3 cursor-pointer position-relative overflow-hidden"
+                        :class="
+                          cls.classConfig.deskType === 'double'
+                            ? 'border-primary bg-primary-subtle'
+                            : 'bg-light border-light'
+                        "
+                        @click="cls.classConfig.deskType = 'double'"
+                        style="cursor: pointer; transition: all 0.2s"
+                      >
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                          <i
+                            class="bi bi-people-fill"
+                            :class="
+                              cls.classConfig.deskType === 'double'
+                                ? 'text-primary'
+                                : 'text-muted'
+                            "
+                          ></i>
+                          <span
+                            class="fw-bold small"
+                            :class="
+                              cls.classConfig.deskType === 'double'
+                                ? 'text-dark'
+                                : 'text-muted'
+                            "
+                            >Двойные</span
+                          >
+                        </div>
+                        <div
+                          class="small text-muted"
+                          style="font-size: 0.75rem"
+                        >
+                          По 2 ученика за партой
+                        </div>
+                      </div>
+                      <div
+                        class="flex-fill border rounded p-3 cursor-pointer position-relative overflow-hidden"
+                        :class="
+                          cls.classConfig.deskType === 'single'
+                            ? 'border-primary bg-primary-subtle'
+                            : 'bg-light border-light'
+                        "
+                        @click="cls.classConfig.deskType = 'single'"
+                        style="cursor: pointer; transition: all 0.2s"
+                      >
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                          <i
+                            class="bi bi-person-fill"
+                            :class="
+                              cls.classConfig.deskType === 'single'
+                                ? 'text-primary'
+                                : 'text-muted'
+                            "
+                          ></i>
+                          <span
+                            class="fw-bold small"
+                            :class="
+                              cls.classConfig.deskType === 'single'
+                                ? 'text-dark'
+                                : 'text-muted'
+                            "
+                            >Одинарные</span
+                          >
+                        </div>
+                        <div
+                          class="small text-muted"
+                          style="font-size: 0.75rem"
+                        >
+                          По 1 ученику за партой
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </BTab>
     </BTabs>
 
@@ -122,51 +447,125 @@
       v-model="showVisualizer"
       title="Выбор мест"
       size="lg"
+      centered
       @ok="saveVisualSelection"
+      ok-title="Сохранить"
+      cancel-title="Отмена"
     >
-      <div class="d-flex flex-column align-items-center gap-3">
-        <div class="bg-dark text-white rounded p-1 w-50 text-center mb-2">
-          ДОСКА
-        </div>
-        <div
-          v-for="r in cls.classConfig.rows"
-          :key="r"
-          class="d-flex align-items-center gap-3"
-        >
-          <button
-            class="btn btn-sm"
-            :class="
-              selection.rows.includes(r)
-                ? 'btn-primary'
-                : 'btn-outline-secondary'
-            "
-            @click="
-              selection.rows.includes(r)
-                ? selection.rows.splice(selection.rows.indexOf(r), 1)
-                : selection.rows.push(r)
-            "
-            style="width: 80px"
+      <div class="d-flex flex-column align-items-center">
+        <div class="w-100 d-flex justify-content-center mb-5">
+          <div
+            class="bg-dark text-white rounded px-5 py-2 small fw-bold shadow-sm"
+            style="width: 30%"
           >
-            {{ r }}
-          </button>
-          <div class="d-flex gap-2">
+            <center>ДОСКА</center>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3 mb-4 small text-muted">
+          <div class="d-flex align-items-center gap-1">
             <div
-              v-for="c in cls.classConfig.columns"
-              :key="c"
-              class="d-flex align-items-center justify-content-center border rounded"
+              class="border rounded bg-success"
+              style="width: 16px; height: 16px"
+            ></div>
+            Ряд
+          </div>
+          <div class="d-flex align-items-center gap-1">
+            <div
+              class="border rounded bg-primary"
+              style="width: 16px; height: 16px"
+            ></div>
+            Парта
+          </div>
+        </div>
+
+        <div
+          class="d-flex justify-content-center gap-4 p-4 bg-light rounded border"
+        >
+          <div
+            v-for="colNum in cls.classConfig.columns"
+            :key="colNum"
+            class="d-flex flex-column align-items-center gap-3"
+          >
+            <button
+              class="btn btn-sm fw-bold border-0 mb-2"
               :class="
-                selection.cols.includes(c)
-                  ? 'bg-primary text-white border-primary'
-                  : 'bg-light text-secondary border-secondary'
+                selection.cols.includes(colNum) ? 'text-success' : 'text-muted'
               "
-              @click="
-                selection.cols.includes(c)
-                  ? selection.cols.splice(selection.cols.indexOf(c), 1)
-                  : selection.cols.push(c)
-              "
-              style="width: 40px; height: 40px; cursor: pointer"
+              @click="toggleCol(colNum)"
             >
-              {{ c }}
+              Ряд {{ colNum }}
+            </button>
+
+            <div
+              v-for="rowNum in cls.classConfig.rows"
+              :key="rowNum"
+              class="d-flex gap-2 align-items-center position-relative"
+              style="cursor: pointer"
+              @click="toggleRow(rowNum)"
+            >
+              <div
+                v-if="colNum === 1"
+                class="text-muted small position-absolute"
+                style="
+                  right: 100%;
+                  margin-right: 15px;
+                  font-size: 10px;
+                  white-space: nowrap;
+                "
+              >
+                {{ rowNum }}
+              </div>
+
+              <div
+                class="d-flex gap-1 p-1 border rounded bg-white shadow-sm"
+                :class="{
+                  'border-success bg-success-subtle':
+                    selection.cols.includes(colNum),
+                  'border-primary': selection.rows.includes(rowNum),
+                }"
+              >
+                <div
+                  v-if="cls.classConfig.deskType === 'double'"
+                  class="d-flex align-items-center justify-content-center border rounded-1"
+                  :class="
+                    selection.rows.includes(rowNum)
+                      ? 'bg-primary border-primary text-white'
+                      : selection.cols.includes(colNum)
+                      ? 'bg-success border-success text-white'
+                      : 'bg-light border-light-subtle text-muted'
+                  "
+                  style="width: 24px; height: 24px; font-size: 10px"
+                >
+                  <i
+                    class="bi bi-check-lg"
+                    v-if="
+                      selection.rows.includes(rowNum) ||
+                      selection.cols.includes(colNum)
+                    "
+                  ></i>
+                </div>
+
+                <div
+                  class="d-flex align-items-center justify-content-center border rounded-1"
+                  :class="
+                    selection.rows.includes(rowNum)
+                      ? 'bg-primary border-primary text-white'
+                      : selection.cols.includes(colNum)
+                      ? 'bg-success border-success text-white'
+                      : 'bg-light border-light-subtle text-muted'
+                  "
+                  style="width: 24px; height: 24px; font-size: 10px"
+                >
+                  <i
+                    class="bi bi-check-lg"
+                    v-if="
+                      selection.rows.includes(rowNum) ||
+                      selection.cols.includes(colNum)
+                    "
+                  ></i>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -179,20 +578,10 @@
 import { computed, onMounted, watch, ref } from "vue";
 import { useRoute } from "vue-router";
 import useClasses from "./composables/useClasses.js";
-import {
-  BApp,
-  BButton,
-  BTabs,
-  BTab,
-  BCard,
-  BFormGroup,
-  BFormInput,
-  BFormSelect,
-  BModal,
-} from "bootstrap-vue-next";
+import { BApp } from "bootstrap-vue-next";
 
 const route = useRoute();
-const { classes, saveClasses, loadClasses } = useClasses();
+const { classes, saveClasses, loadClasses, checkName } = useClasses();
 const showVisualizer = ref(false);
 const currentStudent = ref(null);
 const editMode = ref("");
@@ -222,27 +611,54 @@ const addStudent = () => {
 const openVisualizer = (student, mode) => {
   currentStudent.value = student;
   editMode.value = mode;
-  const str =
+  selection.value.rows = [];
+  selection.value.cols = [];
+
+  const rVal =
+    mode === "prefs" ? student.preferredRows : student.medicalPreferredRow;
+  const cVal =
     mode === "prefs"
-      ? student.preferredRows + "|" + student.preferredColumns
-      : student.medicalPreferredRow + "|" + student.medicalPreferredColumn;
-  selection.value.rows = str
-    .split("|")[0]
-    .split(",")
-    .map((s) => parseInt(s.trim()))
-    .filter((n) => !isNaN(n));
-  selection.value.cols = str
-    .split("|")[1]
-    .split(",")
-    .map((s) => parseInt(s.trim()))
-    .filter((n) => !isNaN(n));
+      ? student.preferredColumns
+      : student.medicalPreferredColumn;
+
+  if (rVal) {
+    rVal.split(",").forEach((r) => {
+      const num = parseInt(r.trim());
+      if (!isNaN(num)) selection.value.rows.push(num);
+    });
+  }
+  if (cVal) {
+    cVal.split(",").forEach((c) => {
+      const num = parseInt(c.trim());
+      if (!isNaN(num)) selection.value.cols.push(num);
+    });
+  }
   showVisualizer.value = true;
+};
+
+const toggleRow = (r) => {
+  const idx = selection.value.rows.indexOf(r);
+  if (idx > -1) {
+    selection.value.rows.splice(idx, 1);
+  } else {
+    selection.value.rows.push(r);
+  }
+};
+
+const toggleCol = (c) => {
+  const idx = selection.value.cols.indexOf(c);
+  if (idx > -1) {
+    selection.value.cols.splice(idx, 1);
+  } else {
+    selection.value.cols.push(c);
+  }
 };
 
 const saveVisualSelection = () => {
   if (!currentStudent.value) return;
   const rRes = selection.value.rows.sort((a, b) => a - b).join(", ");
   const cRes = selection.value.cols.sort((a, b) => a - b).join(", ");
+
   if (editMode.value === "prefs") {
     currentStudent.value.preferredRows = rRes;
     currentStudent.value.preferredColumns = cRes;

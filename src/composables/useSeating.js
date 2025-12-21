@@ -3,39 +3,6 @@ import axios from 'axios'
 
 export function useSeating() {
   const request = ref({
-    students: [
-      {
-        id: 0,
-        name: 'Алекс',
-        preferredRows: '1',
-        preferredColumns: '1',
-        medicalPreferredRow: '1',
-        medicalPreferredColumn: '',
-      },
-      {
-        id: 1,
-        name: 'Иван',
-        preferredRows: '',
-        preferredColumns: '',
-        medicalPreferredRow: '',
-        medicalPreferredColumn: '',
-      },
-      {
-        id: 2,
-        name: 'Анна',
-        preferredRows: '',
-        preferredColumns: '',
-        medicalPreferredRow: '',
-        medicalPreferredColumn: '',
-      },
-    ],
-    preferences: [[0, 1]],
-    forbidden: [[0, 2]],
-    classConfig: {
-      rows: 2,
-      columns: 2,
-      deskType: 'double',
-    },
     priority: [3, 2, 1, 0],
     popSize: 300,
     generations: 400,
@@ -297,11 +264,11 @@ export function useSeating() {
         }
       })
 
-      if (request.value.popSize < 2 || request.value.popSize > 600) {
-        error.push('Размер популяции должен быть целым положительным числом не меньше 2 и не больше 600')
+      if (request.value.popSize < 2 || request.value.popSize > 1000) {
+        error.push('Размер популяции должен быть целым положительным числом не меньше 2 и не больше 1000')
       }
-      if (request.value.generations < 2 || request.value.generations > 600) {
-        error.push('Количество поколений должно быть целым положительным числом не меньше 2 и не больше 600')
+      if (request.value.generations < 2 || request.value.generations > 1000) {
+        error.push('Количество поколений должно быть целым положительным числом не меньше 2 и не больше 1000')
       }
       if (request.value.crossOverChance < 0 || request.value.crossOverChance > 1) {
         error.push('Шанс кроссинговера должен лежать в диапазоне (0, 1]')
@@ -332,6 +299,10 @@ export function useSeating() {
     return str.split(',').map(Number).filter((n) => !isNaN(n)).map((n) => n - 1)
   }
 
+  const findIdByName = (name) => {
+    const s = request.value.students.find(st => st.name.trim() === name.trim());
+    return s ? s.id : null;
+  };
   async function generateSeating() {
     closeAll()
     response.value = []
@@ -345,8 +316,12 @@ export function useSeating() {
         medicalPreferredRows: parseCommaSeparated(student.medicalPreferredRow),
         medicalPreferredColumns: parseCommaSeparated(student.medicalPreferredColumn),
       })),
-      preferences: request.value.preferences,
-      forbidden: request.value.forbidden,
+      preferences: request.value.preferences
+      .map(pair => [findIdByName(pair[0]), findIdByName(pair[1])])
+      .filter(pair => pair[0] !== null && pair[1] !== null),    
+      forbidden: request.value.forbidden
+      .map(pair => [findIdByName(pair[0]), findIdByName(pair[1])])
+      .filter(pair => pair[0] !== null && pair[1] !== null),
       classConfig: {
         rows: request.value.classConfig.rows,
         columns: request.value.classConfig.deskType === 'double' ? request.value.classConfig.columns * 2 : request.value.classConfig.columns,
@@ -490,38 +465,6 @@ export function useSeating() {
       priority: parsedData.priority || [3, 2, 1, 0],
     }
   }
-  initDisplayArrays()
-
-  watch(
-    () => request.value.students,
-    () => {
-      initDisplayArrays()
-    },
-    { deep: true }
-  )
-
-  watch(
-    () => request.value.preferences,
-    () => {
-      initDisplayArrays()
-    },
-    { deep: true }
-  )
-
-  watch(
-    () => request.value.forbidden,
-    () => {
-      initDisplayArrays()
-    },
-    { deep: true }
-  )
-
-  watch(
-    () => studentSearch.value,
-    () => {
-      currentPage.value = 1
-    }
-  )
 
   return {
     request,
