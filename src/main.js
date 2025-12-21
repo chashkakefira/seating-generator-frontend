@@ -1,7 +1,8 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min';
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import App from './App.vue'
 import Generator from './Generator.vue';
 import ClassesList from './ClassesList.vue'

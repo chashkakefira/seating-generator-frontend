@@ -6,6 +6,15 @@ export function useSeating() {
     popSize: 300,
     generations: 400,
     crossOverChance: 0.3,
+    students: [],
+    preferences: [],
+    forbidden: [],
+    priority: [3,2,1,0],
+    classConfig: {
+      rows: 0,
+      columns: 0,
+      deskType: 'double'   
+    }
   })
 
   const preferencesDisplay = ref([])

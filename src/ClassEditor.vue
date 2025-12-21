@@ -148,7 +148,7 @@
           </div>
         </div>
 
-        <div v-if="cls.students.length > 5" class="text-center mt-4">
+        <div class="text-center mt-4">
           <BButton
             variant="outline-primary"
             @click="addStudent"
