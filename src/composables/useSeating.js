@@ -27,7 +27,7 @@ export function useSeating() {
     medical: 8.0,
     friends: 6.5, 
     enemies: 7.0,
-    preferences: 3.0,
+    preferences: 6.5,
     fill: 3.0,
   })
 
