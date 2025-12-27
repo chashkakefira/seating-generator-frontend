@@ -117,9 +117,6 @@
                 >Думаю...</span
               >
             </button>
-            <button class="btn btn-outline-danger btn-sm" @click="clearData">
-              <i class="bi bi-trash me-1"></i>Сброс
-            </button>
           </div>
 
           <div
@@ -246,52 +243,6 @@
         </BCol>
       </BRow>
     </BContainer>
-
-    <BModal
-      v-model="showModal"
-      :title="editingStudent ? 'Изменить ученика' : 'Новый ученик'"
-      @ok="saveStudent"
-      centered
-    >
-      <BForm>
-        <BFormGroup label="Имя и Фамилия" class="mb-3">
-          <BFormInput v-model="modalStudent.name" required />
-        </BFormGroup>
-        <BRow>
-          <BCol>
-            <BFormGroup label="Желаемые ряды">
-              <BFormInput
-                v-model="modalStudent.preferredRows"
-                placeholder="1, 2"
-              />
-            </BFormGroup>
-          </BCol>
-          <BCol>
-            <BFormGroup label="Желаемые парты">
-              <BFormInput
-                v-model="modalStudent.preferredColumns"
-                placeholder="1, 3"
-              />
-            </BFormGroup>
-          </BCol>
-        </BRow>
-        <BRow class="mt-2">
-          <BCol>
-            <BFormGroup label="Медиц. ряды">
-              <BFormInput
-                v-model="modalStudent.medicalPreferredRow"
-                placeholder="Только 1"
-              />
-            </BFormGroup>
-          </BCol>
-          <BCol>
-            <BFormGroup label="Медиц. парты">
-              <BFormInput v-model="modalStudent.medicalPreferredColumn" />
-            </BFormGroup>
-          </BCol>
-        </BRow>
-      </BForm>
-    </BModal>
   </BApp>
 </template>
 
@@ -300,7 +251,6 @@ import { ref, computed, onMounted } from "vue";
 import { useSeating } from "./composables/useSeating";
 import useClasses from "./composables/useClasses";
 import { useRoute, useRouter } from "vue-router";
-import draggable from "vuedraggable";
 const route = useRoute();
 const router = useRouter();
 const { classes, loadClasses } = useClasses();
@@ -309,15 +259,9 @@ const {
   ignored,
   error,
   validateErrors,
-  showModal,
-  modalStudent,
-  editingStudent,
   generateSeating,
   getStudentName,
   getStudentID,
-  clearData,
-  saveStudent,
-  accordionItems,
   priorities,
 } = useSeating();
 

@@ -578,7 +578,6 @@
 import { computed, onMounted, watch, ref } from "vue";
 import { useRoute } from "vue-router";
 import useClasses from "./composables/useClasses.js";
-import { BApp } from "bootstrap-vue-next";
 
 const route = useRoute();
 const { classes, saveClasses, loadClasses, checkName } = useClasses();
