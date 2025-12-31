@@ -7,101 +7,95 @@
           lg="3"
           class="settings-panel bg-light border-end p-3 overflow-auto"
         >
-          <BAccordion class="mb-3 shadow-sm" flush>
-            <BAccordionItem title="⚙️ Алгоритм и Приоритеты">
-              <div class="slider-group mb-4">
-                <label
-                  class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
-                >
-                  <span>Медицина</span>
-                  <span class="badge bg-primary fs-6">{{
-                    priorities.medical
-                  }}</span>
-                </label>
-                <input
-                  type="range"
-                  class="form-range"
-                  v-model.number="priorities.medical"
-                  min="0"
-                  max="10"
-                  step="0.5"
-                />
-              </div>
+          <div class="slider-group mb-4">
+            <label
+              class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
+            >
+              <span>Медицина</span>
+              <span class="badge bg-primary fs-6">{{
+                priorities.medical
+              }}</span>
+            </label>
+            <input
+              type="range"
+              class="form-range"
+              v-model.number="priorities.medical"
+              min="0"
+              max="10"
+              step="0.5"
+            />
+          </div>
 
-              <div class="slider-group mb-4">
-                <label
-                  class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
-                >
-                  <span>Друзья вместе</span>
-                  <span class="badge bg-success fs-6">{{
-                    priorities.friends
-                  }}</span>
-                </label>
-                <input
-                  type="range"
-                  class="form-range"
-                  v-model.number="priorities.friends"
-                  min="0"
-                  max="10"
-                  step="0.5"
-                />
-              </div>
+          <div class="slider-group mb-4">
+            <label
+              class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
+            >
+              <span>Друзья вместе</span>
+              <span class="badge bg-success fs-6">{{
+                priorities.friends
+              }}</span>
+            </label>
+            <input
+              type="range"
+              class="form-range"
+              v-model.number="priorities.friends"
+              min="0"
+              max="10"
+              step="0.5"
+            />
+          </div>
 
-              <div class="slider-group mb-4">
-                <label
-                  class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
-                >
-                  <span>Запрещенные пары</span>
-                  <span class="badge bg-danger fs-6">{{
-                    priorities.enemies
-                  }}</span>
-                </label>
-                <input
-                  type="range"
-                  class="form-range"
-                  v-model.number="priorities.enemies"
-                  min="0"
-                  max="10"
-                  step="0.5"
-                />
-              </div>
+          <div class="slider-group mb-4">
+            <label
+              class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
+            >
+              <span>Запрещенные пары</span>
+              <span class="badge bg-danger fs-6">{{ priorities.enemies }}</span>
+            </label>
+            <input
+              type="range"
+              class="form-range"
+              v-model.number="priorities.enemies"
+              min="0"
+              max="10"
+              step="0.5"
+            />
+          </div>
 
-              <div class="slider-group mb-4">
-                <label
-                  class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
-                >
-                  <span>Предпочтения по рядам и партам</span>
-                  <span class="badge bg-warning fs-6">{{
-                    priorities.preferences
-                  }}</span>
-                </label>
-                <input
-                  type="range"
-                  class="form-range"
-                  v-model.number="priorities.preferences"
-                  min="0"
-                  max="10"
-                  step="0.5"
-                />
-              </div>
-              <div class="slider-group mb-4">
-                <label
-                  class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
-                >
-                  <span>Плотность заполнения</span>
-                  <span class="badge bg-info fs-6">{{ priorities.fill }}</span>
-                </label>
-                <input
-                  type="range"
-                  class="form-range"
-                  v-model.number="priorities.fill"
-                  min="0"
-                  max="10"
-                  step="0.5"
-                />
-              </div>
-            </BAccordionItem>
-          </BAccordion>
+          <div class="slider-group mb-4">
+            <label
+              class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
+            >
+              <span>Предпочтения по рядам и партам</span>
+              <span class="badge bg-warning fs-6">{{
+                priorities.preferences
+              }}</span>
+            </label>
+            <input
+              type="range"
+              class="form-range"
+              v-model.number="priorities.preferences"
+              min="0"
+              max="10"
+              step="0.5"
+            />
+          </div>
+          <div class="slider-group mb-4">
+            <label
+              class="form-label fw-bold mb-2 d-flex justify-content-between align-items-center"
+            >
+              <span>Плотность заполнения</span>
+              <span class="badge bg-info fs-6">{{ priorities.fill }}</span>
+            </label>
+            <input
+              type="range"
+              class="form-range"
+              v-model.number="priorities.fill"
+              min="0"
+              max="10"
+              step="0.5"
+            />
+          </div>
 
           <div class="d-grid gap-2">
             <button
@@ -198,10 +192,10 @@
                     <template v-if="request.classConfig.deskType === 'double'">
                       <div
                         class="seat flex-fill d-flex align-items-center justify-content-center p-1 border-end"
-                        :class="{
-                          'bg-warning-subtle': isIgnored(row, (col - 1) * 2),
-                        }"
                         :title="getStudentName(row - 1, (col - 1) * 2)"
+                        :style="
+                          getSeatStyle(getSeatData(row - 1, (col - 1) * 2))
+                        "
                       >
                         <span class="student-name" v-fit-text>{{
                           getStudentName(row - 1, (col - 1) * 2) || ""
@@ -209,12 +203,9 @@
                       </div>
                       <div
                         class="seat flex-fill d-flex align-items-center justify-content-center p-1"
-                        :class="{
-                          'bg-warning-subtle': isIgnored(
-                            row,
-                            (col - 1) * 2 + 1
-                          ),
-                        }"
+                        :style="
+                          getSeatStyle(getSeatData(row - 1, (col - 1) * 2 + 1))
+                        "
                         :title="getStudentName(row - 1, (col - 1) * 2 + 1)"
                       >
                         <span class="student-name" v-fit-text>{{
@@ -259,6 +250,7 @@ const {
   ignored,
   error,
   validateErrors,
+  response,
   generateSeating,
   getStudentName,
   getStudentID,
@@ -383,6 +375,23 @@ const adjustFontSize = (el) => {
     el.style.overflow = "hidden";
     el.style.textOverflow = "clip";
   }
+};
+const getSeatData = (row, col) => {
+  return response.value.find((s) => s.Row === row && s.Column === col);
+};
+const getSeatStyle = (seat) => {
+  if (!seat || seat.StudentID === -1 || !seat.Student) {
+    return { backgroundColor: "transparent" };
+  }
+
+  const level = seat.Satisfaction?.Level ?? 0.5;
+  const hue = level * 120;
+
+  return {
+    backgroundColor: `hsl(${hue}, 85%, 92%)`,
+    color: `hsl(${hue}, 90%, 15%)`,
+    transition: "all 0.5s ease",
+  };
 };
 </script>
 
