@@ -302,7 +302,7 @@
                   <BFormInput
                     v-model="cls.name"
                     size="lg"
-                    placeholder="Например: 10 'А'"
+                    placeholder="Например: 10 'В'"
                     class="border-0 bg-white shadow-none fw-bold text-primary"
                   />
                 </BFormGroup>
@@ -489,9 +489,7 @@
           >
             <button
               class="btn btn-sm fw-bold border-0 mb-2"
-              :class="
-                selection.cols.includes(colNum) ? 'text-success' : 'text-muted'
-              "
+              :class="isColSelected(colNum) ? 'text-success' : 'text-muted'"
               @click="toggleCol(colNum)"
             >
               Ряд {{ colNum }}
@@ -501,8 +499,6 @@
               v-for="rowNum in cls.classConfig.rows"
               :key="rowNum"
               class="d-flex gap-2 align-items-center position-relative"
-              style="cursor: pointer"
-              @click="toggleRow(rowNum)"
             >
               <div
                 v-if="colNum === 1"
@@ -520,19 +516,20 @@
               <div
                 class="d-flex gap-1 p-1 border rounded bg-white shadow-sm"
                 :class="{
-                  'border-success bg-success-subtle':
-                    selection.cols.includes(colNum),
+                  'border-success bg-success-subtle': isColSelected(colNum),
                   'border-primary': selection.rows.includes(rowNum),
                 }"
+                style="cursor: pointer"
+                @click="toggleRow(rowNum)"
               >
                 <div
-                  v-if="cls.classConfig.deskType === 'double'"
+                  v-for="seatIndex in getSeatIndices(colNum)"
+                  :key="seatIndex"
                   class="d-flex align-items-center justify-content-center border rounded-1"
                   :class="
-                    selection.rows.includes(rowNum)
+                    selection.rows.includes(rowNum) ||
+                    selection.cols.includes(seatIndex)
                       ? 'bg-primary border-primary text-white'
-                      : selection.cols.includes(colNum)
-                      ? 'bg-success border-success text-white'
                       : 'bg-light border-light-subtle text-muted'
                   "
                   style="width: 24px; height: 24px; font-size: 10px"
@@ -541,27 +538,7 @@
                     class="bi bi-check-lg"
                     v-if="
                       selection.rows.includes(rowNum) ||
-                      selection.cols.includes(colNum)
-                    "
-                  ></i>
-                </div>
-
-                <div
-                  class="d-flex align-items-center justify-content-center border rounded-1"
-                  :class="
-                    selection.rows.includes(rowNum)
-                      ? 'bg-primary border-primary text-white'
-                      : selection.cols.includes(colNum)
-                      ? 'bg-success border-success text-white'
-                      : 'bg-light border-light-subtle text-muted'
-                  "
-                  style="width: 24px; height: 24px; font-size: 10px"
-                >
-                  <i
-                    class="bi bi-check-lg"
-                    v-if="
-                      selection.rows.includes(rowNum) ||
-                      selection.cols.includes(colNum)
+                      selection.cols.includes(seatIndex)
                     "
                   ></i>
                 </div>
@@ -635,21 +612,41 @@ const openVisualizer = (student, mode) => {
   showVisualizer.value = true;
 };
 
-const toggleRow = (r) => {
-  const idx = selection.value.rows.indexOf(r);
-  if (idx > -1) {
-    selection.value.rows.splice(idx, 1);
+const getSeatIndices = (colNum) => {
+  if (cls.value.classConfig.deskType === "double") {
+    return [colNum * 2 - 1, colNum * 2];
+  }
+  return [colNum];
+};
+
+const isColSelected = (colNum) => {
+  const indices = getSeatIndices(colNum);
+  return indices.every((idx) => selection.value.cols.includes(idx));
+};
+
+const toggleCol = (colNum) => {
+  const indices = getSeatIndices(colNum);
+  const alreadySelected = isColSelected(colNum);
+
+  if (alreadySelected) {
+    selection.value.cols = selection.value.cols.filter(
+      (id) => !indices.includes(id)
+    );
   } else {
-    selection.value.rows.push(r);
+    indices.forEach((idx) => {
+      if (!selection.value.cols.includes(idx)) {
+        selection.value.cols.push(idx);
+      }
+    });
   }
 };
 
-const toggleCol = (c) => {
-  const idx = selection.value.cols.indexOf(c);
+const toggleRow = (rowNum) => {
+  const idx = selection.value.rows.indexOf(rowNum);
   if (idx > -1) {
-    selection.value.cols.splice(idx, 1);
+    selection.value.rows.splice(idx, 1);
   } else {
-    selection.value.cols.push(c);
+    selection.value.rows.push(rowNum);
   }
 };
 
