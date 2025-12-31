@@ -14,7 +14,7 @@
           class="shadow-sm px-4 rounded-pill"
           @click="showModal = true"
         >
-          <i class="bi bi-plus-lg me-2"></i>Новый класс
+          <i-bi-plus-lg me-2></i-bi-plus-lg>Создать класс
         </BButton>
       </div>
 
