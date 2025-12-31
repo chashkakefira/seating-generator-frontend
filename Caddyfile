@@ -1,9 +1,13 @@
 :80 {
-    handle_path /api/* {
-        reverse_proxy backend:5000
-    }
-    root * /srv
     encode gzip
-    file_server
-    try_files {path} /index.html
+    route {
+        handle_path /api/* {
+            reverse_proxy backend:5000
+        }
+        handle {
+            root * /srv
+            file_server
+            try_files {path} /index.html
+        }
+    }
 }
