@@ -18,6 +18,25 @@
               Всего учеников: {{ cls.students.length }}
             </div>
           </div>
+          <div class="d-flex gap-2">
+            <BButton variant="outline-success" size="sm" @click="exportToCSV">
+              <i-bi-download class="me-1" /> Экспорт CSV
+            </BButton>
+            <BButton
+              variant="outline-primary"
+              size="sm"
+              @click="$refs.csvInput.click()"
+            >
+              <i-bi-upload class="me-1" /> Импорт CSV
+            </BButton>
+            <input
+              type="file"
+              ref="csvInput"
+              accept=".csv"
+              style="display: none"
+              @change="importFromCSV"
+            />
+          </div>
         </div>
         <div v-if="!cls.students?.length" class="text-center py-5 text-muted">
           <div class="display-1 text-muted opacity-25 mb-3">
@@ -555,6 +574,8 @@
 import { computed, onMounted, watch, ref } from "vue";
 import { useRoute } from "vue-router";
 import useClasses from "./composables/useClasses.js";
+import Papa from "papaparse";
+const csvInput = ref(null);
 
 const route = useRoute();
 const { classes, saveClasses, loadClasses, checkName } = useClasses();
@@ -662,6 +683,96 @@ const saveVisualSelection = () => {
     currentStudent.value.medicalPreferredRow = rRes;
     currentStudent.value.medicalPreferredColumn = cRes;
   }
+};
+
+const exportToCSV = () => {
+  const studentNames = new Map(cls.value.students.map((s) => [s.id, s.name]));
+
+  const data = cls.value.students.map((s) => {
+    const friendPair = cls.value.preferences.find((p) => p.includes(s.id));
+    const friendId = friendPair ? friendPair.find((id) => id !== s.id) : null;
+
+    const enemyPair = cls.value.forbidden?.find((p) => p.includes(s.id));
+    const enemyId = enemyPair ? enemyPair.find((id) => id !== s.id) : null;
+
+    return {
+      Имя: s.name,
+      Парты: s.preferredRows,
+      Ряды: s.preferredColumns,
+      Мед_Парты: s.medicalPreferredRow,
+      Мед_Ряды: s.medicalPreferredColumn,
+      Дружит_с: friendId ? studentNames.get(friendId) : "",
+      Враждует_с: enemyId ? studentNames.get(enemyId) : "",
+    };
+  });
+
+  const csv = Papa.unparse(data);
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `${cls.value.name}_students.csv`);
+  link.click();
+};
+
+const importFromCSV = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: (results) => {
+      const rows = results.data;
+
+      const importedStudents = rows.map((row) => ({
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        name: row["Имя"] || "Безымянный",
+        preferredRows: row["Парты"] || "",
+        preferredColumns: row["Ряды"] || "",
+        medicalPreferredRow: row["Мед_Парты"] || "",
+        medicalPreferredColumn: row["Мед_Ряды"] || "",
+      }));
+
+      const newPrefs = [];
+      const newForbidden = [];
+
+      rows.forEach((row) => {
+        const self = importedStudents.find((s) => s.name === row["Имя"]);
+        if (!self) return;
+
+        if (row["Дружит_с"]) {
+          const friend = importedStudents.find(
+            (s) => s.name === row["Дружит_с"].trim()
+          );
+          if (friend) {
+            const exists = newPrefs.find(
+              (p) => p.includes(self.id) && p.includes(friend.id)
+            );
+            if (!exists) newPrefs.push([self.id, friend.id]);
+          }
+        }
+
+        if (row["Враждует_с"]) {
+          const enemy = importedStudents.find(
+            (s) => s.name === row["Враждует_с"].trim()
+          );
+          if (enemy) {
+            const exists = newForbidden.find(
+              (p) => p.includes(self.id) && p.includes(enemy.id)
+            );
+            if (!exists) newForbidden.push([self.id, enemy.id]);
+          }
+        }
+      });
+
+      cls.value.students = importedStudents;
+      cls.value.preferences = newPrefs;
+      cls.value.forbidden = newForbidden;
+
+      event.target.value = "";
+    },
+  });
 };
 
 onMounted(() => loadClasses());
