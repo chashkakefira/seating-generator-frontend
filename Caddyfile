@@ -4,7 +4,7 @@
     file_server
     try_files {path} /index.html
 
-    handle /api/* {
-        reverse_proxy {$BACKEND_HOST}:{$BACKEND_PORT}
+    handle_path /api/* {
+        reverse_proxy backend:5000
     }
 }
