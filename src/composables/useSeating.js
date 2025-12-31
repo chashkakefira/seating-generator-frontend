@@ -175,7 +175,8 @@ export function useSeating() {
     }
 
     try {
-      const res = await axios.post('/api/generate-seating', requestData, {
+      const apiUrl = import.meta.env.VITE_API_URL || '/api/generate-seating'
+      const res = await axios.post(apiUrl, requestData, {
         headers: { 'Content-Type': 'application/json' },
       })
       response.value = res.data.Seating || []
