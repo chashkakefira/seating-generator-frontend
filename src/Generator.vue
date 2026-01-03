@@ -164,13 +164,10 @@
             @wheel.prevent="onWheel"
           >
             <div :style="canvasStyle">
-              <div class="teacher-area mb-5 text-center">
-                <div
-                  class="teacher-desk shadow-sm rounded mx-auto d-flex align-items-center justify-content-center text-white fw-bold"
-                >
-                  СТОЛ УЧИТЕЛЯ
-                </div>
-                <div class="blackboard bg-dark mt-2 mx-auto rounded"></div>
+              <div
+                class="blackboard bg-dark mt-2 mx-auto rounded d-flex align-items-center justify-content-center text-white mb-5"
+              >
+                ДОСКА
               </div>
               <div class="desks-container d-flex flex-column gap-4">
                 <div
@@ -455,7 +452,7 @@ const getSeatStyle = (seat) => {
 
 .blackboard {
   width: 300px;
-  height: 10px;
+  height: 40px;
   background: #334155;
 }
 
