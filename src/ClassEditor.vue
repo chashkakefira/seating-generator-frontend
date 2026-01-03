@@ -6,6 +6,29 @@
           >&larr;</BButton
         >
         <h2 class="m-0">{{ cls.name }}</h2>
+        <BButton
+          variant="outline-primary"
+          :disabled="hasErrors"
+          @click="handleSave"
+          >Сохранить рассадку</BButton
+        >
+        <i-bi-exclamation-triangle-fill
+          v-if="hasErrors"
+          variant="link"
+          class="p-0 text-danger border-0 shadow-none"
+          @click="
+            console.log('Клик!');
+            showErrorsModal = true;
+          "
+          v-b-tooltip.hover="'Нажмите, чтобы увидеть ошибки'"
+          type="button"
+        ></i-bi-exclamation-triangle-fill>
+        <BToast
+          v-model="showSuccessToast"
+          variant="success"
+          body="Данные успешно сохранены!"
+          pos="top-end"
+        />
       </div>
     </div>
 
@@ -567,6 +590,21 @@
         </div>
       </div>
     </BModal>
+    <BModal
+      v-model="showErrorsModal"
+      title="Ошибки валидации"
+      ok-only
+      ok-title="Понятно"
+    >
+      <div class="alert alert-danger" v-if="getValidationErrors(cls).length">
+        <ul class="mb-0">
+          <li v-for="(err, index) in getValidationErrors(cls)" :key="index">
+            {{ err }}
+          </li>
+        </ul>
+      </div>
+      <p v-else class="text-success">Ошибок не обнаружено.</p>
+    </BModal>
   </div>
 </template>
 
@@ -578,7 +616,8 @@ import Papa from "papaparse";
 const csvInput = ref(null);
 
 const route = useRoute();
-const { classes, saveClasses, loadClasses, checkName } = useClasses();
+const { classes, saveClasses, loadClasses, checkName, getValidationErrors } =
+  useClasses();
 const showVisualizer = ref(false);
 const currentStudent = ref(null);
 const editMode = ref("");
@@ -774,7 +813,17 @@ const importFromCSV = (event) => {
     },
   });
 };
-
+const showSuccessToast = ref(false);
+const showErrorsModal = ref(false);
+const handleSave = () => {
+  if (!hasErrors.value) {
+    saveClasses();
+    showSuccessToast.value = true;
+    setTimeout(() => {
+      showSuccessToast.value = false;
+    }, 3000);
+  }
+};
+const hasErrors = computed(() => getValidationErrors(cls.value).length > 0);
 onMounted(() => loadClasses());
-watch(classes, () => saveClasses(), { deep: true });
 </script>

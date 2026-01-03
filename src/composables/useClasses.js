@@ -31,10 +31,16 @@ export default function useClasses()
         if (!name) return null;
         return cls.students.some(s => s.name === name);
     };
-    const validateErrors = computed(() => {
+
+    const parseCommaSeparated = (str) => {
+      if (!str) return [];
+      return str.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+    };  
+      
+    const getValidationErrors = ((targetClass) => {
         const error = []
-        const { students, preferences, forbidden, classConfig } = request.value
-    
+        const { students, preferences, forbidden, classConfig } = targetClass
+
         if (classConfig.rows <= 0) {
           error.push('Количество рядов должно быть положительным целым числом')
         }
@@ -115,7 +121,7 @@ export default function useClasses()
         selectedClassId,
         newClassName,
         currentClass,
-        validateErrors,
+        getValidationErrors,
         saveClasses,
         addNewClass,
         deleteClass,
