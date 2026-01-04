@@ -88,6 +88,13 @@
                 >
                   <i class="bi bi-magic me-2"></i>Рассадить
                 </BButton>
+                <router-link
+                  :to="`/class/${cls.id}/history`"
+                  class="btn btn-outline-primary btn-sm"
+                  :disabled="true"
+                >
+                  <i-bi-clock-history /> История
+                </router-link>
               </div>
             </div>
           </div>

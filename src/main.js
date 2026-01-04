@@ -14,6 +14,7 @@ const router = createRouter({
         {path: '/generate/:id', name: 'Generator', component: Generator, props: true},
         {path: '/classes-list', component: ClassesList},
         {path: '/class/:id', name: 'ClassEditor', component: ClassEditor, props: true},
+        {path: '/class/:id/history', name: 'SeatingHistory', component: () => import('./SeatingHistory.vue')},
     ]
 })
 const app = createApp(App);
