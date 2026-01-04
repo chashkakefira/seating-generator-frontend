@@ -1,4 +1,15 @@
 <template>
+  <div
+    class="toast-container position-fixed top-0 end-0 p-3"
+    style="z-index: 2000"
+  >
+    <BToast v-model="showSuccessToast" variant="success" :delay="2000">
+      <div class="d-flex align-items-center">
+        <i-bi-check-circle-fill />
+        Класс успешно сохранена!
+      </div>
+    </BToast>
+  </div>
   <div class="p-3" v-if="cls">
     <div class="d-flex align-items-center justify-content-between mb-4">
       <div class="d-flex align-items-center gap-3">
@@ -10,25 +21,16 @@
           variant="outline-primary"
           :disabled="hasErrors"
           @click="handleSave"
-          >Сохранить рассадку</BButton
+          >Сохранить класс</BButton
         >
         <i-bi-exclamation-triangle-fill
           v-if="hasErrors"
           variant="link"
           class="p-0 text-danger border-0 shadow-none"
-          @click="
-            console.log('Клик!');
-            showErrorsModal = true;
-          "
+          @click="showErrorsModal = true"
           v-b-tooltip.hover="'Нажмите, чтобы увидеть ошибки'"
           type="button"
         ></i-bi-exclamation-triangle-fill>
-        <BToast
-          v-model="showSuccessToast"
-          variant="success"
-          body="Данные успешно сохранены!"
-          pos="top-end"
-        />
       </div>
     </div>
 

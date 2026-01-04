@@ -28,7 +28,6 @@ export function useSeating() {
     preferences: 6.5,
     fill: 3.0,
   })
-
   const validateErrors = computed(() => {
     const errors = []
     const { students, preferences, forbidden, classConfig } = request.value

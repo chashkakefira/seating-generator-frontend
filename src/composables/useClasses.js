@@ -1,6 +1,13 @@
 import { ref, computed } from 'vue';
 const classes = ref([]);
 const currentClass = ref(null);
+const getSeatingFingerprint = (seatingArray) => {
+    if (!seatingArray || !Array.isArray(seatingArray)) return '';
+    return seatingArray
+        .map(s => `${s.Row}-${s.Column}-${s.StudentID}`)
+        .sort()
+        .join('|');
+};
 export default function useClasses()
 {
     const selectedClassId = ref('');
@@ -13,9 +20,32 @@ export default function useClasses()
         classes.value = saved ? JSON.parse(saved) : [];
     };
     const addNewClass = (name) => {
-        const newClass = { id: Date.now(), name, students: [], preferences: [[]], forbidden: [[]]};
+        const newClass = { id: Date.now(), name, students: [], preferences: [], forbidden: [], seatings: []};
         classes.value.push(newClass);
         saveClasses();
+    };
+   const saveSeating = (classId, newResponse) => {
+      const targetClass = classes.value.find(c => c.id == classId);
+      const seatingData = newResponse?.Seating || newResponse; 
+      if (!targetClass || !Array.isArray(seatingData)) {
+        return { success: false, reason: 'error' };
+      }
+
+      if (!targetClass.seatings) targetClass.seatings = [];
+      const newFingerprint = getSeatingFingerprint(seatingData);
+      const isDuplicate = targetClass.seatings.some(old => 
+        getSeatingFingerprint(old.Seating || old) === newFingerprint
+      );
+
+      if (isDuplicate) {
+        return { success: false, reason: 'duplicate' };
+      }
+
+      const entryToSave = newResponse.Seating ? newResponse : { Seating: newResponse, Date: Math.floor(Date.now()/1000) };
+      targetClass.seatings.unshift(entryToSave);
+      
+      saveClasses();
+      return { success: true };
     };
     const deleteClass = (id) => {
         const idx = classes.value.findIndex(cls => cls.id === id);
@@ -121,6 +151,7 @@ export default function useClasses()
         selectedClassId,
         newClassName,
         currentClass,
+        saveSeating,
         getValidationErrors,
         saveClasses,
         addNewClass,

@@ -1,5 +1,23 @@
 <template>
   <BApp>
+    <div
+      class="toast-container position-fixed top-0 end-0 p-3"
+      style="z-index: 2000"
+    >
+      <BToast v-model="isToastVisible" variant="success" :delay="2000">
+        <div class="d-flex align-items-center">
+          <i-bi-check-circle-fill />
+          Рассадка успешно сохранена!
+        </div>
+      </BToast>
+
+      <BToast v-model="isWarnToastVisible" variant="warning" :delay="2000">
+        <div class="d-flex align-items-center">
+          <i-bi-exclamation-triangle-fill />
+          Такая рассадка уже есть в сохраненных!
+        </div>
+      </BToast>
+    </div>
     <BContainer fluid class="main-container p-0 h-100">
       <BRow class="h-100">
         <BCol
@@ -111,6 +129,12 @@
                 >Думаю...</span
               >
             </button>
+            <BButton
+              :disabled="!response || response.length === 0"
+              @click="handleSave(route.params.id, response)"
+              variant="outline-primary"
+              >Сохранить рассадку</BButton
+            >
           </div>
 
           <div
@@ -164,68 +188,10 @@
             @wheel.prevent="onWheel"
           >
             <div :style="canvasStyle">
-              <div
-                class="blackboard bg-dark mt-2 mx-auto rounded d-flex align-items-center justify-content-center text-white mb-5"
-              >
-                ДОСКА
-              </div>
-              <div class="desks-container d-flex flex-column gap-4">
-                <div
-                  v-for="row in request.classConfig.rows"
-                  :key="row"
-                  class="desk-row d-flex gap-4 justify-content-center"
-                >
-                  <div
-                    class="row-marker d-flex align-items-center justify-content-center text-muted fw-bold small"
-                  >
-                    {{ row }}
-                  </div>
-                  <div
-                    v-for="col in request.classConfig.columns"
-                    :key="col"
-                    class="desk-unit shadow-sm bg-white rounded border d-flex overflow-hidden"
-                    :class="request.classConfig.deskType"
-                  >
-                    <template v-if="request.classConfig.deskType === 'double'">
-                      <div
-                        class="seat flex-fill d-flex align-items-center justify-content-center p-1 border-end"
-                        :title="getStudentName(row - 1, (col - 1) * 2)"
-                        :style="
-                          getSeatStyle(getSeatData(row - 1, (col - 1) * 2))
-                        "
-                      >
-                        <span class="student-name" v-fit-text>{{
-                          getStudentName(row - 1, (col - 1) * 2) || ""
-                        }}</span>
-                      </div>
-                      <div
-                        class="seat flex-fill d-flex align-items-center justify-content-center p-1"
-                        :style="
-                          getSeatStyle(getSeatData(row - 1, (col - 1) * 2 + 1))
-                        "
-                        :title="getStudentName(row - 1, (col - 1) * 2 + 1)"
-                      >
-                        <span class="student-name" v-fit-text>{{
-                          getStudentName(row - 1, (col - 1) * 2 + 1) || ""
-                        }}</span>
-                      </div>
-                    </template>
-                    <template v-else>
-                      <div
-                        class="seat flex-fill d-flex align-items-center justify-content-center p-1 position-relative"
-                        :class="{
-                          'bg-warning-subtle': isIgnored(row, col - 1),
-                        }"
-                        :title="getStudentName(row - 1, col - 1)"
-                      >
-                        <span class="student-name small fw-medium" v-fit-text>{{
-                          getStudentName(row - 1, col - 1) || ""
-                        }}</span>
-                      </div>
-                    </template>
-                  </div>
-                </div>
-              </div>
+              <ClassMap
+                :config="request.classConfig"
+                :seating="response"
+              ></ClassMap>
             </div>
           </div>
         </BCol>
@@ -239,9 +205,10 @@ import { ref, computed, onMounted } from "vue";
 import { useSeating } from "./composables/useSeating";
 import useClasses from "./composables/useClasses";
 import { useRoute, useRouter } from "vue-router";
+import ClassMap from "./ClassMap.vue";
 const route = useRoute();
 const router = useRouter();
-const { classes, loadClasses } = useClasses();
+const { classes, loadClasses, saveSeating } = useClasses();
 const {
   request,
   ignored,
@@ -249,13 +216,11 @@ const {
   validateErrors,
   response,
   generateSeating,
-  getStudentName,
   getStudentID,
   priorities,
 } = useSeating();
 
 const isGenerating = ref(false);
-
 onMounted(async () => {
   await loadClasses();
   const classId = route.params.id;
@@ -297,6 +262,26 @@ const handleGenerate = async () => {
     isGenerating.value = false;
   }
 };
+
+const isToastVisible = ref(false);
+const isWarnToastVisible = ref(false);
+
+const handleSave = () => {
+  const result = saveSeating(route.params.id, response.value);
+
+  if (result.success) {
+    isToastVisible.value = true;
+    setTimeout(() => {
+      isToastVisible.value = false;
+    }, 2000);
+  } else if (result.reason === "duplicate") {
+    isWarnToastVisible.value = true;
+    setTimeout(() => {
+      isWarnToastVisible.value = false;
+    }, 2000);
+  }
+};
+
 const scale = ref(1);
 const translateX = ref(0);
 const translateY = ref(0);
@@ -340,63 +325,9 @@ const endPan = (e) => {
   isPanning.value = false;
   if (e.currentTarget) e.currentTarget.style.cursor = "grab";
 };
-
-const isIgnored = (row, colIndex) =>
-  ignored.value.includes(getStudentID(row - 1, colIndex));
-
-const vFitText = {
-  mounted: (el) => adjustFontSize(el),
-  updated: (el) => adjustFontSize(el),
-};
-
-const adjustFontSize = (el) => {
-  const maxFontSize = 14;
-  const minFontSize = 9;
-
-  el.style.fontSize = maxFontSize + "px";
-  el.style.lineHeight = "1.1";
-  el.style.textOverflow = "clip";
-  el.style.overflow = "visible";
-
-  let currentSize = maxFontSize;
-
-  while (el.scrollWidth > el.clientWidth && currentSize > minFontSize) {
-    currentSize--;
-    el.style.fontSize = currentSize + "px";
-  }
-
-  if (el.scrollWidth > el.clientWidth) {
-    el.style.overflow = "hidden";
-    el.style.textOverflow = "ellipsis";
-  } else {
-    el.style.overflow = "hidden";
-    el.style.textOverflow = "clip";
-  }
-};
-const getSeatData = (row, col) => {
-  return response.value.find((s) => s.Row === row && s.Column === col);
-};
-const getSeatStyle = (seat) => {
-  if (!seat || seat.StudentID === -1 || !seat.Student) {
-    return { backgroundColor: "transparent" };
-  }
-
-  const level = seat.Satisfaction?.Level ?? 0.5;
-  const hue = level * 120;
-
-  return {
-    backgroundColor: `hsl(${hue}, 85%, 92%)`,
-    color: `hsl(${hue}, 90%, 15%)`,
-    transition: "all 0.5s ease",
-  };
-};
 </script>
 
 <style scoped>
-.app-header {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-}
-
 .generate-btn {
   transition: all 0.2s;
 }
@@ -424,52 +355,6 @@ const getSeatStyle = (seat) => {
   cursor: grab;
   background-color: rgb(223, 223, 223);
 }
-
-.classroom-canvas {
-  background: white;
-  padding: 60px 100px;
-  border-radius: 8px;
-  min-width: 800px;
-  min-height: 600px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.seat {
-  width: 110px;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.teacher-desk {
-  width: 240px;
-  height: 70px;
-  background: #475569;
-  color: #f8fafc;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.blackboard {
-  width: 300px;
-  height: 40px;
-  background: #334155;
-}
-
-.desk-unit {
-  transition: all 0.3s;
-}
-
-.desk-unit.single {
-  width: 110px;
-  height: 65px;
-}
-
-.desk-unit.double {
-  width: 220px;
-  height: 65px;
-}
-
 .form-select-xs {
   padding: 0.1rem 0.5rem;
   font-size: 0.75rem;
