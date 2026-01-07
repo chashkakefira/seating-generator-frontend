@@ -728,14 +728,13 @@ const saveVisualSelection = () => {
 const exportToCSV = () => {
   const studentNames = new Map(cls.value.students.map((s) => [s.id, s.name]));
 
-  const data = cls.value.students.map((s) => {
+  const data = cls.value.students.map((s, index) => {
     const friendPair = cls.value.preferences.find((p) => p.includes(s.id));
     const friendId = friendPair ? friendPair.find((id) => id !== s.id) : null;
-
     const enemyPair = cls.value.forbidden?.find((p) => p.includes(s.id));
     const enemyId = enemyPair ? enemyPair.find((id) => id !== s.id) : null;
 
-    return {
+    const row = {
       Имя: s.name,
       Парты: s.preferredRows,
       Ряды: s.preferredColumns,
@@ -744,15 +743,25 @@ const exportToCSV = () => {
       Дружит_с: friendId ? studentNames.get(friendId) : "",
       Враждует_с: enemyId ? studentNames.get(enemyId) : "",
     };
+
+    if (index === 0) {
+      row["_conf_name"] = cls.value.name;
+      row["_conf_rows"] = cls.value.classConfig.rows;
+      row["_conf_cols"] = cls.value.classConfig.columns;
+      row["_conf_type"] = cls.value.classConfig.deskType;
+    }
+
+    return row;
   });
 
-  const csv = Papa.unparse(data);
+  const csv = Papa.unparse(data, { delimiter: "," });
   const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.setAttribute("download", `${cls.value.name}_students.csv`);
+  link.download = `${cls.value.name}.csv`;
   link.click();
+  URL.revokeObjectURL(url);
 };
 
 const importFromCSV = (event) => {
@@ -764,44 +773,61 @@ const importFromCSV = (event) => {
     skipEmptyLines: true,
     complete: (results) => {
       const rows = results.data;
+      if (!rows.length) return;
 
-      const importedStudents = rows.map((row) => ({
-        id: Date.now() + Math.floor(Math.random() * 1000),
-        name: row["Имя"] || "Безымянный",
-        preferredRows: row["Парты"] || "",
-        preferredColumns: row["Ряды"] || "",
-        medicalPreferredRow: row["Мед_Парты"] || "",
-        medicalPreferredColumn: row["Мед_Ряды"] || "",
-      }));
+      const meta = rows[0];
+      if (meta["_conf_rows"]) {
+        cls.value.name = meta["_conf_name"] || cls.value.name;
+        cls.value.classConfig.rows = parseInt(meta["_conf_rows"]);
+        cls.value.classConfig.columns = parseInt(meta["_conf_cols"]);
+        cls.value.classConfig.deskType = meta["_conf_type"] || "double";
+      }
+
+      const importedStudents = rows
+        .map((row) => ({
+          id: Date.now() + Math.floor(Math.random() * 1000000),
+          name: String(row["Имя"] || "").trim(),
+          preferredRows: String(row["Парты"] || ""),
+          preferredColumns: String(row["Ряды"] || ""),
+          medicalPreferredRow: String(row["Мед_Парты"] || ""),
+          medicalPreferredColumn: String(row["Мед_Ряды"] || ""),
+        }))
+        .filter((s) => s.name !== "");
 
       const newPrefs = [];
       const newForbidden = [];
 
-      rows.forEach((row) => {
-        const self = importedStudents.find((s) => s.name === row["Имя"]);
+      rows.forEach((row, index) => {
+        const self = importedStudents[index];
         if (!self) return;
 
-        if (row["Дружит_с"]) {
-          const friend = importedStudents.find(
-            (s) => s.name === row["Дружит_с"].trim()
-          );
-          if (friend) {
-            const exists = newPrefs.find(
-              (p) => p.includes(self.id) && p.includes(friend.id)
-            );
-            if (!exists) newPrefs.push([self.id, friend.id]);
+        const fName = row["Дружит_с"] ? String(row["Дружит_с"]).trim() : null;
+        const eName = row["Враждует_с"]
+          ? String(row["Враждует_с"]).trim()
+          : null;
+
+        if (fName) {
+          const target = importedStudents.find((s) => s.name === fName);
+          if (target && self.id !== target.id) {
+            if (
+              !newPrefs.find(
+                (p) => p.includes(self.id) && p.includes(target.id)
+              )
+            ) {
+              newPrefs.push([self.id, target.id]);
+            }
           }
         }
-
-        if (row["Враждует_с"]) {
-          const enemy = importedStudents.find(
-            (s) => s.name === row["Враждует_с"].trim()
-          );
-          if (enemy) {
-            const exists = newForbidden.find(
-              (p) => p.includes(self.id) && p.includes(enemy.id)
-            );
-            if (!exists) newForbidden.push([self.id, enemy.id]);
+        if (eName) {
+          const target = importedStudents.find((s) => s.name === eName);
+          if (target && self.id !== target.id) {
+            if (
+              !newForbidden.find(
+                (p) => p.includes(self.id) && p.includes(target.id)
+              )
+            ) {
+              newForbidden.push([self.id, target.id]);
+            }
           }
         }
       });
@@ -810,6 +836,7 @@ const importFromCSV = (event) => {
       cls.value.preferences = newPrefs;
       cls.value.forbidden = newForbidden;
 
+      if (typeof saveClasses === "function") saveClasses();
       event.target.value = "";
     },
   });
