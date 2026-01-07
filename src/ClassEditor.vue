@@ -724,122 +724,118 @@ const saveVisualSelection = () => {
     currentStudent.value.medicalPreferredColumn = cRes;
   }
 };
-
 const exportToCSV = () => {
-  const studentNames = new Map(cls.value.students.map((s) => [s.id, s.name]));
+  const configHeader = `CONFIG;${cls.value.name};${cls.value.classConfig.rows};${cls.value.classConfig.columns};${cls.value.classConfig.deskType}`;
+  const data = cls.value.students.map((s) => {
+    const friendPair = cls.value.preferences.find((p) => p.includes(s.name));
+    const friendName = friendPair
+      ? friendPair.find((name) => name !== s.name)
+      : "";
 
-  const data = cls.value.students.map((s, index) => {
-    const friendPair = cls.value.preferences.find((p) => p.includes(s.id));
-    const friendId = friendPair ? friendPair.find((id) => id !== s.id) : null;
-    const enemyPair = cls.value.forbidden?.find((p) => p.includes(s.id));
-    const enemyId = enemyPair ? enemyPair.find((id) => id !== s.id) : null;
+    const enemyPair = cls.value.forbidden?.find((p) => p.includes(s.name));
+    const enemyName = enemyPair
+      ? enemyPair.find((name) => name !== s.name)
+      : "";
 
-    const row = {
+    return {
       Имя: s.name,
       Парты: s.preferredRows,
       Ряды: s.preferredColumns,
       Мед_Парты: s.medicalPreferredRow,
       Мед_Ряды: s.medicalPreferredColumn,
-      Дружит_с: friendId ? studentNames.get(friendId) : "",
-      Враждует_с: enemyId ? studentNames.get(enemyId) : "",
+      Дружит_с: friendName,
+      Враждует_с: enemyName,
     };
-
-    if (index === 0) {
-      row["_conf_name"] = cls.value.name;
-      row["_conf_rows"] = cls.value.classConfig.rows;
-      row["_conf_cols"] = cls.value.classConfig.columns;
-      row["_conf_type"] = cls.value.classConfig.deskType;
-    }
-
-    return row;
   });
 
-  const csv = Papa.unparse(data, { delimiter: "," });
-  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const csvData = Papa.unparse(data);
+
+  const finalContent = configHeader + "\n" + csvData;
+
+  const blob = new Blob(["\ufeff" + finalContent], {
+    type: "text/csv;charset=utf-8;",
+  });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${cls.value.name}.csv`;
+  link.setAttribute("download", `${cls.value.name}.csv`);
   link.click();
-  URL.revokeObjectURL(url);
 };
 
 const importFromCSV = (event) => {
   const file = event.target.files[0];
   if (!file) return;
 
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    complete: (results) => {
-      const rows = results.data;
-      if (!rows.length) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const content = e.target.result;
+    const lines = content.split(/\r?\n/);
 
-      const meta = rows[0];
-      if (meta["_conf_rows"]) {
-        cls.value.name = meta["_conf_name"] || cls.value.name;
-        cls.value.classConfig.rows = parseInt(meta["_conf_rows"]);
-        cls.value.classConfig.columns = parseInt(meta["_conf_cols"]);
-        cls.value.classConfig.deskType = meta["_conf_type"] || "double";
+    let csvToParse = content;
+
+    if (lines[0].startsWith("CONFIG;")) {
+      const parts = lines[0].split(";");
+      if (parts.length >= 5) {
+        cls.value.name = parts[1];
+        cls.value.classConfig.rows = parseInt(parts[2]) || 3;
+        cls.value.classConfig.columns = parseInt(parts[3]) || 2;
+        cls.value.classConfig.deskType = parts[4].trim();
       }
+      lines.shift();
+      csvToParse = lines.join("\n");
+    }
 
-      const importedStudents = rows
-        .map((row) => ({
-          id: Date.now() + Math.floor(Math.random() * 1000000),
-          name: String(row["Имя"] || "").trim(),
-          preferredRows: String(row["Парты"] || ""),
-          preferredColumns: String(row["Ряды"] || ""),
-          medicalPreferredRow: String(row["Мед_Парты"] || ""),
-          medicalPreferredColumn: String(row["Мед_Ряды"] || ""),
-        }))
-        .filter((s) => s.name !== "");
+    Papa.parse(csvToParse, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const rows = results.data;
 
-      const newPrefs = [];
-      const newForbidden = [];
+        const importedStudents = rows.map((row) => ({
+          id: Date.now() + Math.random(),
+          name: row["Имя"] || "Без имени",
+          preferredRows: row["Парты"] || "",
+          preferredColumns: row["Ряды"] || "",
+          medicalPreferredRow: row["Мед_Парты"] || "",
+          medicalPreferredColumn: row["Мед_Ряды"] || "",
+        }));
 
-      rows.forEach((row, index) => {
-        const self = importedStudents[index];
-        if (!self) return;
+        const newPrefs = [];
+        const newForbidden = [];
 
-        const fName = row["Дружит_с"] ? String(row["Дружит_с"]).trim() : null;
-        const eName = row["Враждует_с"]
-          ? String(row["Враждует_с"]).trim()
-          : null;
+        rows.forEach((row) => {
+          const currentName = row["Имя"];
+          if (!currentName) return;
 
-        if (fName) {
-          const target = importedStudents.find((s) => s.name === fName);
-          if (target && self.id !== target.id) {
-            if (
-              !newPrefs.find(
-                (p) => p.includes(self.id) && p.includes(target.id)
-              )
-            ) {
-              newPrefs.push([self.id, target.id]);
-            }
+          if (row["Дружит_с"]) {
+            const friendName = row["Дружит_с"].trim();
+            const exists = newPrefs.find(
+              (p) => p.includes(currentName) && p.includes(friendName)
+            );
+            if (!exists) newPrefs.push([currentName, friendName]);
           }
-        }
-        if (eName) {
-          const target = importedStudents.find((s) => s.name === eName);
-          if (target && self.id !== target.id) {
-            if (
-              !newForbidden.find(
-                (p) => p.includes(self.id) && p.includes(target.id)
-              )
-            ) {
-              newForbidden.push([self.id, target.id]);
-            }
+
+          if (row["Враждует_с"]) {
+            const enemyName = row["Враждует_с"].trim();
+            const exists = newForbidden.find(
+              (p) => p.includes(currentName) && p.includes(enemyName)
+            );
+            if (!exists) newForbidden.push([currentName, enemyName]);
           }
-        }
-      });
+        });
+        cls.value.students = importedStudents;
+        cls.value.preferences = newPrefs;
+        cls.value.forbidden = newForbidden;
+      },
+      error: (err) => {
+        console.error("Ошибка PapaParse:", err);
+        alert("Ошибка при чтении CSV файла");
+      },
+    });
+  };
 
-      cls.value.students = importedStudents;
-      cls.value.preferences = newPrefs;
-      cls.value.forbidden = newForbidden;
-
-      if (typeof saveClasses === "function") saveClasses();
-      event.target.value = "";
-    },
-  });
+  reader.readAsText(file, "UTF-8");
+  event.target.value = "";
 };
 const showSuccessToast = ref(false);
 const showErrorsModal = ref(false);
