@@ -86,24 +86,24 @@ export default function useClasses()
         students.forEach((student) => {
           studentsIDs.set(student.id, student.name)
           parseCommaSeparated(student.preferredRows).forEach((row) => {
-            if (row < 0 || row >= classConfig.rows) {
+            if (row < 0 || row > classConfig.rows) {
               error.push(`Недопустимый ряд ${row} для ученика ${student.name}`)
             }
           })
           parseCommaSeparated(student.preferredColumns).forEach((col) => {
             const maxCols = classConfig.deskType === 'double' ? classConfig.columns * 2 : classConfig.columns
-            if (col < 0 || col >= maxCols) {
+            if (col < 0 || col > maxCols) {
               error.push(`Недопустимая парта ${col} для ученика ${student.name}`)
             }
           })
           parseCommaSeparated(student.medicalPreferredColumn).forEach((col) => {
             const maxCols = classConfig.deskType === 'double' ? classConfig.columns * 2 : classConfig.columns
-            if (col < 0 || col >= maxCols) {
+            if (col < 0 || col > maxCols) {
               error.push(`Недопустимая парта ${col} для ученика ${student.name} в медицинских предпочтениях`)
             }
           })
           parseCommaSeparated(student.medicalPreferredRow).forEach((row) => {
-            if (row < 0 || row >= classConfig.rows) {
+            if (row < 0 || row > classConfig.rows) {
               error.push(`Недопустимый ряд ${row} для ученика ${student.name} в медицинских предпочтениях`)
             }
           })
