@@ -108,7 +108,13 @@ export default function useClasses()
             }
           })
         })
-    
+
+        targetClass.students.forEach((s, index) => {
+        if (!s.name || s.name.trim() === "") {
+          error.push(`Ученик №${index + 1} не имеет имени`);
+        }
+      });
+
         const checkDuplicates = (pairs, listName) => {
           const seen = new Set()
           pairs.forEach(pair => {
@@ -153,11 +159,26 @@ export default function useClasses()
 
         return error;
     })
+    const hasErrors = computed(() => {
+      const activeId = window.location.pathname.split('/').pop();
+      const currentCls = classes.value.find(c => String(c.id) === String(activeId));
+      
+      if (!currentCls) return false;
+      return getValidationErrors(currentCls).length > 0;
+    });
+
+    const handleSave = () => {
+      if (hasErrors.value) return false;
+      saveClasses();
+      return true;
+    };
     return {
         classes,
         selectedClassId,
         newClassName,
         currentClass,
+        hasErrors,
+        handleSave,
         saveSeating,
         getValidationErrors,
         saveClasses,

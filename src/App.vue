@@ -37,14 +37,16 @@
           </ul>
 
           <ul v-if="activeClass" class="navbar-nav ms-auto">
-            <li class="nav-item">
+            <li v-if="!route.path.includes('generate')" class="nav-item">
               <BButton
-                :to="{ name: 'Generator', params: { id: activeClass.id } }"
+                v-if="!route.path.includes('generate')"
                 variant="light"
-                size="sm"
-                class="rounded-pill px-3 fw-bold text-primary shadow-sm"
+                class="rounded-pill px-4 fw-bold text-primary border-primary shadow-sm"
+                :disabled="hasErrors"
+                @click="handleSeating"
               >
-                <i-bi-magic /> Рассадить
+                <i-bi-magic class="me-2" />
+                Рассадить
               </BButton>
             </li>
           </ul>
@@ -62,11 +64,12 @@
 
 <script setup>
 import { computed, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import useClasses from "./composables/useClasses.js";
 
 const route = useRoute();
-const { classes, loadClasses } = useClasses();
+const router = useRouter();
+const { classes, loadClasses, handleSave, hasErrors } = useClasses();
 
 onMounted(() => {
   loadClasses();
@@ -77,6 +80,14 @@ const activeClass = computed(() => {
   if (!id) return null;
   return classes.value.find((c) => String(c.id) === String(id));
 });
+
+const handleSeating = () => {
+  handleSave();
+  const id = route.params.id;
+  if (!hasErrors.value && id) {
+    router.push(`/generate/${id}`);
+  }
+};
 </script>
 
 <style>

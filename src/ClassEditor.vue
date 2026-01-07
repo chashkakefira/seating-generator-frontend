@@ -617,8 +617,14 @@ import Papa from "papaparse";
 const csvInput = ref(null);
 
 const route = useRoute();
-const { classes, saveClasses, loadClasses, checkName, getValidationErrors } =
-  useClasses();
+const {
+  classes,
+  hasErrors,
+  loadClasses,
+  checkName,
+  getValidationErrors,
+  handleSave,
+} = useClasses();
 const showVisualizer = ref(false);
 const currentStudent = ref(null);
 const editMode = ref("");
@@ -839,15 +845,5 @@ const importFromCSV = (event) => {
 };
 const showSuccessToast = ref(false);
 const showErrorsModal = ref(false);
-const handleSave = () => {
-  if (!hasErrors.value) {
-    saveClasses();
-    showSuccessToast.value = true;
-    setTimeout(() => {
-      showSuccessToast.value = false;
-    }, 3000);
-  }
-};
-const hasErrors = computed(() => getValidationErrors(cls.value).length > 0);
 onMounted(() => loadClasses());
 </script>
