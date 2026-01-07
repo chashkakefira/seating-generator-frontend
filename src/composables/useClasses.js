@@ -1,13 +1,6 @@
 import { ref, computed } from 'vue';
 const classes = ref([]);
 const currentClass = ref(null);
-const getSeatingFingerprint = (seatingArray) => {
-    if (!seatingArray || !Array.isArray(seatingArray)) return '';
-    return seatingArray
-        .map(s => `${s.Row}-${s.Column}-${s.StudentID}`)
-        .sort()
-        .join('|');
-};
 export default function useClasses()
 {
     const selectedClassId = ref('');
@@ -73,6 +66,9 @@ export default function useClasses()
       
     const getValidationErrors = ((targetClass) => {
         const error = []
+        if (!targetClass || !targetClass.classConfig) {
+          return [];
+        }
         const { students, preferences, forbidden, classConfig } = targetClass
 
         if (classConfig.rows <= 0) {
