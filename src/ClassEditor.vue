@@ -792,7 +792,7 @@ const importFromCSV = (event) => {
         const rows = results.data;
 
         const importedStudents = rows.map((row) => ({
-          id: Date.now() + Math.random(),
+          id: Math.floor(Date.now() + Math.random() * 10000),
           name: row["Имя"] || "Без имени",
           preferredRows: row["Парты"] || "",
           preferredColumns: row["Ряды"] || "",
