@@ -130,6 +130,9 @@ export default function useClasses()
           if (pair[0] === pair[1] && pair[0] !== null) {
             error.push(`${studentsIDs.get(pair[0])} не может хотеть сидеть сам с собой`)
           }
+          if (pair[0] === null || pair[1] === null || pair[0] === undefined || pair[1] === undefined || pair[0] === '' || pair[1] === '') {
+            error.push(`Пара в предпочтениях не может содержать пустые значения`)
+          }
         })
     
         forbidden.forEach((pair) => {
