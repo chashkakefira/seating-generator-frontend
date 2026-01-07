@@ -24,24 +24,28 @@ export default function useClasses()
         classes.value.push(newClass);
         saveClasses();
     };
-   const saveSeating = (classId, newResponse) => {
+   const saveSeating = (classId, serverResponse) => {
       const targetClass = classes.value.find(c => c.id == classId);
-      const seatingData = newResponse?.Seating || newResponse; 
-      if (!targetClass || !Array.isArray(seatingData)) {
-        return { success: false, reason: 'error' };
-      }
+      if (!targetClass) return { success: false, reason: 'class_not_found' };
+      const seatingArray = serverResponse.Seating || serverResponse;
+      
+      if (!Array.isArray(seatingArray)) return { success: false, reason: 'invalid_data' };
+
+      const getFingerprint = (arr) => arr.map(s => `${s.row || s.Row}-${s.col || s.Column}-${s.studentId || s.StudentID}`).sort().join('|');
+      
+      const newFingerprint = getFingerprint(seatingArray);
+      const isDuplicate = targetClass.seatings?.some(old => getFingerprint(old.Seating || old) === newFingerprint);
+
+      if (isDuplicate) return { success: false, reason: 'duplicate' };
+
+      const entryToSave = {
+        Seating: seatingArray,
+        Date: serverResponse.Date || Math.floor(Date.now() / 1000),
+        Fitness: serverResponse.Fitness || 0,
+        ID: serverResponse.ID || Date.now().toString()
+      };
 
       if (!targetClass.seatings) targetClass.seatings = [];
-      const newFingerprint = getSeatingFingerprint(seatingData);
-      const isDuplicate = targetClass.seatings.some(old => 
-        getSeatingFingerprint(old.Seating || old) === newFingerprint
-      );
-
-      if (isDuplicate) {
-        return { success: false, reason: 'duplicate' };
-      }
-
-      const entryToSave = newResponse.Seating ? newResponse : { Seating: newResponse, Date: Math.floor(Date.now()/1000) };
       targetClass.seatings.unshift(entryToSave);
       
       saveClasses();

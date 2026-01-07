@@ -55,7 +55,7 @@
                 <div class="dropdown">
                   <button
                     class="btn btn-link text-muted p-0"
-                    @click.stop="deleteClass(cls.id)"
+                    @click.stop="handleDelete(cls)"
                   >
                     <i-bi-trash />
                   </button>
@@ -148,6 +148,16 @@ const {
   loadClasses,
 } = useClasses();
 const showModal = ref(false);
+
+const handleDelete = (cls) => {
+  if (
+    confirm(
+      `Вы уверены, что хотите удалить класс "${cls.name}" со всей историей рассадок?`
+    )
+  ) {
+    deleteClass(cls.id);
+  }
+};
 
 const getRandomColor = (id) => {
   const colors = [

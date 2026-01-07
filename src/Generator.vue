@@ -211,12 +211,10 @@ const router = useRouter();
 const { classes, loadClasses, saveSeating } = useClasses();
 const {
   request,
-  ignored,
   error,
   validateErrors,
   response,
   generateSeating,
-  getStudentID,
   priorities,
 } = useSeating();
 

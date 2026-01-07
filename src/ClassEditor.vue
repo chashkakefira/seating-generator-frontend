@@ -578,13 +578,12 @@
                   "
                   style="width: 24px; height: 24px; font-size: 10px"
                 >
-                  <i
-                    class="bi bi-check-lg"
+                  <i-bi-check-lg
                     v-if="
                       selection.rows.includes(rowNum) ||
                       selection.cols.includes(seatIndex)
                     "
-                  ></i>
+                  ></i-bi-check-lg>
                 </div>
               </div>
             </div>
