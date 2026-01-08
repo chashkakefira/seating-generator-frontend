@@ -15,18 +15,17 @@ export function useSeating() {
       deskType: 'double'
     }
   })
-
+  const priorities = ref({
+    medical: 80,
+    friends: 40,
+    enemies: 70,
+    preferences: 65,
+    fill: 30,
+  })
   const response = ref([])
   const error = ref('')
   const ignored = ref([])
   const fitness = ref(0)
-  const priorities = ref({
-    medical: 8.0,
-    friends: 6.5,
-    enemies: 7.0,
-    preferences: 6.5,
-    fill: 0.3,
-  })
   const validateErrors = computed(() => {
     const errors = []
     const { students, preferences, forbidden, classConfig } = request.value
@@ -145,6 +144,7 @@ export function useSeating() {
       classConfig: {
         rows: request.value.classConfig.rows,
         columns: request.value.classConfig.deskType === 'double' ? request.value.classConfig.columns * 2 : request.value.classConfig.columns,
+        deskType: request.value.classConfig.deskType,
       },
       popSize: request.value.popSize,
       generations: request.value.generations,
