@@ -9,7 +9,6 @@ export function useSeating() {
     students: [],
     preferences: [],
     forbidden: [],
-    priority: [3, 2, 1, 0],
     classConfig: {
       rows: 0,
       columns: 0,
@@ -197,7 +196,8 @@ export function useSeating() {
   }
 
   function areAllElementsUnique(arr) {
-    return new Set(arr).size === arr.length
+    if (!arr) return true; 
+    return new Set(arr).size === arr.length;
   }
 
   function parseCommaSeparated(str) {

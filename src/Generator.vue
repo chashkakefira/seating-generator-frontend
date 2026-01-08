@@ -40,7 +40,7 @@
               v-model.number="priorities.medical"
               min="0"
               max="10"
-              step="0.5"
+              step="0.1"
             />
           </div>
 
@@ -59,7 +59,7 @@
               v-model.number="priorities.friends"
               min="0"
               max="10"
-              step="0.5"
+              step="0.1"
             />
           </div>
 
@@ -76,7 +76,7 @@
               v-model.number="priorities.enemies"
               min="0"
               max="10"
-              step="0.5"
+              step="0.1"
             />
           </div>
 
@@ -95,7 +95,7 @@
               v-model.number="priorities.preferences"
               min="0"
               max="10"
-              step="0.5"
+              step="0.1"
             />
           </div>
           <div class="slider-group mb-4">
@@ -111,7 +111,7 @@
               v-model.number="priorities.fill"
               min="0"
               max="10"
-              step="0.5"
+              step="0.1"
             />
           </div>
 
@@ -201,14 +201,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch, nextTick, toRaw } from "vue";
 import { useSeating } from "./composables/useSeating";
 import useClasses from "./composables/useClasses";
 import { useRoute, useRouter } from "vue-router";
 import ClassMap from "./ClassMap.vue";
 const route = useRoute();
 const router = useRouter();
-const { classes, loadClasses, saveSeating } = useClasses();
+const { classes, loadClasses, saveSeating, saveClasses } = useClasses();
 const {
   request,
   error,
@@ -218,6 +218,7 @@ const {
   priorities,
 } = useSeating();
 
+const isLoaded = ref(false);
 const isGenerating = ref(false);
 onMounted(async () => {
   await loadClasses();
@@ -228,6 +229,16 @@ onMounted(async () => {
     router.push("/");
     return;
   }
+
+  isLoaded.value = false;
+
+  if (targetClass.priorities) {
+    priorities.value = JSON.parse(JSON.stringify(targetClass.priorities));
+  }
+
+  await nextTick();
+  isLoaded.value = true;
+
   if (targetClass.classConfig) {
     request.value.classConfig = JSON.parse(
       JSON.stringify(targetClass.classConfig)
@@ -323,6 +334,24 @@ const endPan = (e) => {
   isPanning.value = false;
   if (e.currentTarget) e.currentTarget.style.cursor = "grab";
 };
+
+watch(
+  () => priorities.value,
+  (newVal) => {
+    if (!isLoaded.value) return;
+
+    const classIdx = classes.value.findIndex(
+      (c) => String(c.id) === String(route.params.id)
+    );
+
+    if (classIdx !== -1) {
+      classes.value[classIdx].priorities = { ...toRaw(newVal) };
+
+      saveClasses();
+    }
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>
