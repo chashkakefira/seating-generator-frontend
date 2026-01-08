@@ -95,11 +95,21 @@ const vFitText = {
 };
 
 const adjustFontSize = (el) => {
+  const parent = el.parentElement;
+  if (!parent) return;
+
   const maxFontSize = 14;
-  const minFontSize = 9;
+  const minFontSize = 8;
+
   el.style.fontSize = maxFontSize + "px";
+  el.style.display = "inline-block";
+  el.style.whiteSpace = "nowrap";
+
   let currentSize = maxFontSize;
-  while (el.scrollWidth > el.clientWidth && currentSize > minFontSize) {
+
+  const maxWidth = parent.clientWidth - 8;
+
+  while (el.offsetWidth > maxWidth && currentSize > minFontSize) {
     currentSize--;
     el.style.fontSize = currentSize + "px";
   }
