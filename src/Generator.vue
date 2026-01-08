@@ -39,8 +39,8 @@
               class="form-range"
               v-model.number="priorities.medical"
               min="0"
-              max="10"
-              step="0.1"
+              max="100"
+              step="1"
             />
           </div>
 
@@ -58,8 +58,8 @@
               class="form-range"
               v-model.number="priorities.friends"
               min="0"
-              max="10"
-              step="0.1"
+              max="100"
+              step="1"
             />
           </div>
 
@@ -75,8 +75,8 @@
               class="form-range"
               v-model.number="priorities.enemies"
               min="0"
-              max="10"
-              step="0.1"
+              max="100"
+              step="1"
             />
           </div>
 
@@ -94,8 +94,8 @@
               class="form-range"
               v-model.number="priorities.preferences"
               min="0"
-              max="10"
-              step="0.1"
+              max="100"
+              step="1"
             />
           </div>
           <div class="slider-group mb-4">
@@ -110,8 +110,8 @@
               class="form-range"
               v-model.number="priorities.fill"
               min="0"
-              max="1"
-              step="0.005"
+              max="100"
+              step="1"
             />
           </div>
 
