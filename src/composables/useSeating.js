@@ -4,8 +4,8 @@ import axios from 'axios'
 export function useSeating() {
   const request = ref({
     popSize: 300,
-    generations: 400,
-    crossOverChance: 0.3,
+    generations: 700,
+    crossOverChance: 0.7,
     students: [],
     preferences: [],
     forbidden: [],
@@ -25,7 +25,7 @@ export function useSeating() {
     friends: 6.5,
     enemies: 7.0,
     preferences: 6.5,
-    fill: 3.0,
+    fill: 0.3,
   })
   const validateErrors = computed(() => {
     const errors = []
@@ -103,20 +103,6 @@ export function useSeating() {
         errors.push(`Противоречие: пара ${n1} и ${n2} есть и в желаемых, и в запрещенных`)
       }
     })
-
-    if (request.value.popSize < 2 || request.value.popSize > 600) {
-      errors.push('Размер популяции должен быть от 2 до 600')
-    }
-    if (request.value.generations < 2 || request.value.generations > 600) {
-      errors.push('Количество поколений должно быть от 2 до 600')
-    }
-    if (request.value.crossOverChance < 0 || request.value.crossOverChance > 1) {
-      errors.push('Шанс кроссинговера должен быть от 0 до 1')
-    }
-    if (!areAllElementsUnique(request.value.priority)) {
-      errors.push('Повторяющиеся элементы в приоритетах')
-    }
-
     return errors
   })
 
