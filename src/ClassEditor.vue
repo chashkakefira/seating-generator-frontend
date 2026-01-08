@@ -47,20 +47,6 @@
             <BButton variant="outline-success" size="sm" @click="exportToCSV">
               <i-bi-download class="me-1" /> Экспорт CSV
             </BButton>
-            <BButton
-              variant="outline-primary"
-              size="sm"
-              @click="$refs.csvInput.click()"
-            >
-              <i-bi-upload class="me-1" /> Импорт CSV
-            </BButton>
-            <input
-              type="file"
-              ref="csvInput"
-              accept=".csv"
-              style="display: none"
-              @change="importFromCSV"
-            />
           </div>
         </div>
         <div v-if="!cls.students?.length" class="text-center py-5 text-muted">
@@ -766,82 +752,6 @@ const exportToCSV = () => {
   link.href = url;
   link.setAttribute("download", `${cls.value.name}.csv`);
   link.click();
-};
-
-const importFromCSV = (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const content = e.target.result;
-    const lines = content.split(/\r?\n/);
-
-    let csvToParse = content;
-
-    if (lines[0].startsWith("CONFIG;")) {
-      const parts = lines[0].split(";");
-      if (parts.length >= 5) {
-        cls.value.name = parts[1];
-        cls.value.classConfig.rows = parseInt(parts[2]) || 3;
-        cls.value.classConfig.columns = parseInt(parts[3]) || 2;
-        cls.value.classConfig.deskType = parts[4].trim();
-      }
-      lines.shift();
-      csvToParse = lines.join("\n");
-    }
-
-    Papa.parse(csvToParse, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const rows = results.data;
-
-        const importedStudents = rows.map((row) => ({
-          id: Math.floor(Date.now() + Math.random() * 10000),
-          name: row["Имя"] || "Без имени",
-          preferredRows: row["Парты"] || "",
-          preferredColumns: row["Ряды"] || "",
-          medicalPreferredRow: row["Мед_Парты"] || "",
-          medicalPreferredColumn: row["Мед_Ряды"] || "",
-        }));
-
-        const newPrefs = [];
-        const newForbidden = [];
-
-        rows.forEach((row) => {
-          const currentName = row["Имя"];
-          if (!currentName) return;
-
-          if (row["Дружит_с"]) {
-            const friendName = row["Дружит_с"].trim();
-            const exists = newPrefs.find(
-              (p) => p.includes(currentName) && p.includes(friendName)
-            );
-            if (!exists) newPrefs.push([currentName, friendName]);
-          }
-
-          if (row["Враждует_с"]) {
-            const enemyName = row["Враждует_с"].trim();
-            const exists = newForbidden.find(
-              (p) => p.includes(currentName) && p.includes(enemyName)
-            );
-            if (!exists) newForbidden.push([currentName, enemyName]);
-          }
-        });
-        cls.value.students = importedStudents;
-        cls.value.preferences = newPrefs;
-        cls.value.forbidden = newForbidden;
-      },
-      error: (err) => {
-        console.error("Ошибка PapaParse:", err);
-        alert("Ошибка при чтении CSV файла");
-      },
-    });
-  };
-
-  reader.readAsText(file, "UTF-8");
-  event.target.value = "";
 };
 const showSuccessToast = ref(false);
 const showErrorsModal = ref(false);
