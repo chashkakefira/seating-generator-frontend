@@ -3,9 +3,9 @@ import axios from 'axios'
 
 export function useSeating() {
   const request = ref({
-    popSize: 300,
-    generations: 700,
-    crossOverChance: 0.7,
+    popSize: 500,
+    generations: 1000,
+    crossOverChance: 0.8,
     students: [],
     preferences: [],
     forbidden: [],
