@@ -81,7 +81,8 @@
       v-model="showModal"
       size="xl"
       centered
-      hide-footer
+      :hide-footer="true"
+      footer-class="d-none"
       body-class="p-0 overflow-hidden"
       content-class="border-0 shadow-2xl glass-modal"
     >
@@ -126,27 +127,48 @@
         </div>
       </template>
 
-      <div class="canvas-viewport">
-        <div
-          class="grab-surface"
-          @mousedown.prevent="startPan"
-          @mousemove="panning"
-          @mouseup="endPan"
-          @mouseleave="endPan"
-          @wheel.prevent="onWheel"
-        >
-          <div class="canvas-content" :style="canvasStyle">
-            <ClassMap
-              v-if="activeSeatingData"
-              :config="historyConfig"
-              :seating="activeSeatingData"
-            />
+      <div class="d-flex flex-column bg-white">
+        <div class="canvas-viewport">
+          <div
+            class="grab-surface"
+            @mousedown.prevent="startPan"
+            @mousemove="panning"
+            @mouseup="endPan"
+            @mouseleave="endPan"
+            @wheel.prevent="onWheel"
+          >
+            <div class="canvas-content" :style="canvasStyle">
+              <ClassMap
+                v-if="activeSeatingData"
+                :config="historyConfig"
+                :seating="activeSeatingData"
+              />
+            </div>
+          </div>
+          <div class="canvas-hint">
+            <i-bi-arrows-move class="me-2" />
+            <span>Левая клавиша мыши для перемещения • Колесо для зума</span>
           </div>
         </div>
 
-        <div class="canvas-hint">
-          <i-bi-arrows-move class="me-2" />
-          <span>Левая кнопка мыши для перемещения • Колесо для зума</span>
+        <div
+          class="px-4 py-3 bg-white border-top d-flex justify-content-between align-items-center"
+        >
+          <BButton
+            variant="light"
+            class="rounded-pill px-4 border"
+            @click="showModal = false"
+          >
+            Закрыть
+          </BButton>
+
+          <BButton
+            variant="primary"
+            class="rounded-pill px-4 fw-bold shadow-sm"
+            @click="exportSeatingToPDF(activeSeatingMeta.Date)"
+          >
+            <i-bi-file-pdf class="me-2" /> Скачать PDF
+          </BButton>
         </div>
       </div>
     </BModal>
@@ -158,6 +180,8 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import useClasses from "./composables/useClasses.js";
 import ClassMap from "./ClassMap.vue";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const route = useRoute();
 const { classes, loadClasses, saveClasses } = useClasses();
@@ -177,6 +201,144 @@ const startY = ref(0);
 const cls = computed(() =>
   classes.value.find((x) => String(x.id) === String(route.params.id))
 );
+const exportSeatingToPDF = async (seatingId) => {
+  const seatingData = cls.value.seatings?.find((s) => s.Date === seatingId);
+  if (!seatingData || !seatingData.Seating) return;
+
+  const doc = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: "a4",
+  });
+
+  try {
+    const fontUrl = "/fonts/Roboto-Regular.ttf";
+    const response = await fetch(fontUrl);
+    const blob = await response.blob();
+    const fontBase64 = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(",")[1]);
+      reader.readAsDataURL(blob);
+    });
+    doc.addFileToVFS("Roboto-Regular.ttf", fontBase64);
+    doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+    doc.setFont("Roboto", "normal");
+  } catch (e) {
+    console.error("Шрифт не загружен", e);
+  }
+
+  const { rows, columns, deskType } = cls.value.classConfig;
+  const isDouble = deskType === "double";
+  const pdfColumns = isDouble ? columns * 2 : columns;
+
+  const minColWidth = 30;
+  const indexColWidth = 12;
+
+  const totalTableWidth = indexColWidth + pdfColumns * minColWidth;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let dynamicMarginLeft = (pageWidth - totalTableWidth) / 2;
+  if (dynamicMarginLeft < 15) dynamicMarginLeft = 15;
+
+  const headers = [[]];
+  headers[0].push({
+    content: "№",
+    styles: { halign: "center", fillColor: [200, 200, 200] },
+  });
+
+  if (isDouble) {
+    for (let i = 1; i <= columns; i++) {
+      headers[0].push({
+        content: `Ряд ${i}`,
+        colSpan: 2,
+        styles: { halign: "center" },
+      });
+    }
+  } else {
+    for (let i = 1; i <= columns; i++) {
+      headers[0].push(`Ряд ${i}`);
+    }
+  }
+
+  const tableBody = [];
+  for (let r = 0; r < rows; r++) {
+    const tableRow = [];
+    tableRow.push({
+      content: `${r + 1}`,
+      styles: { fillColor: [245, 245, 245], fontStyle: "bold" },
+    });
+
+    for (let c = 0; c < pdfColumns; c++) {
+      const seat = seatingData.Seating.find((s) => s.Row == r && s.Column == c);
+      tableRow.push(seat && seat.Student !== "-" ? seat.Student : " ");
+    }
+    tableBody.push(tableRow);
+  }
+
+  autoTable(doc, {
+    head: headers,
+    body: tableBody,
+    startY: 30,
+    theme: "grid",
+    horizontalPageBreak: true,
+    horizontalPageBreakRepeat: 0,
+    margin: { left: dynamicMarginLeft, top: 30 },
+    tableWidth: "wrap",
+    styles: {
+      font: "Roboto",
+      fontSize: 8,
+      cellPadding: 2,
+      valign: "middle",
+      halign: "center",
+      overflow: "visible",
+      minCellWidth: minColWidth,
+    },
+    headStyles: {
+      fillColor: [79, 70, 229],
+      textColor: [255, 255, 255],
+      fontStyle: "normal",
+    },
+    columnStyles: {
+      0: { cellWidth: indexColWidth, minCellWidth: indexColWidth },
+    },
+    didParseCell: function (data) {
+      if (data.column.index > 0) {
+        data.cell.styles.cellWidth = minColWidth;
+      }
+      if (isDouble && data.column.index > 0) {
+        const isLastInGroup = data.column.index % 2 === 0;
+        if (isLastInGroup || data.section === "head") {
+          data.cell.styles.lineWidth = {
+            right: 0.8,
+            top: 0.1,
+            left: 0.1,
+            bottom: 0.1,
+          };
+        }
+      }
+    },
+    didDrawPage: (data) => {
+      const pWidth = doc.internal.pageSize.getWidth();
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      doc.text(`Класс: ${cls.value.name}`, 10, 10);
+
+      if (data.pageNumber === 1) {
+        doc.setFillColor(51, 65, 84);
+        doc.roundedRect((pWidth - 60) / 2, 12, 60, 6, 1, 1, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(8);
+        doc.text("ДОСКА", pWidth / 2, 16, { align: "center" });
+      } else {
+        doc.setTextColor(150, 150, 150);
+        doc.setFontSize(8);
+        doc.text(`Лист ${data.pageNumber}`, pWidth - 20, 10);
+      }
+    },
+  });
+
+  doc.save(`Рассадка_${cls.value.name}.pdf`);
+};
 
 const historyConfig = computed(() => {
   if (!cls.value) return {};

@@ -17,7 +17,7 @@ export default function useClasses()
         classes.value.push(newClass);
         saveClasses();
     };
-   const saveSeating = (classId, serverResponse) => {
+   const saveSeating = (classId, serverResponse, clsConfig) => {
       const targetClass = classes.value.find(c => c.id == classId);
       if (!targetClass) return { success: false, reason: 'class_not_found' };
       const seatingArray = serverResponse.Seating || serverResponse;
@@ -33,6 +33,9 @@ export default function useClasses()
 
       const entryToSave = {
         Seating: seatingArray,
+        Rows: clsConfig?.rows || clsConfig?.Rows || 0,
+        Columns: clsConfig?.columns || clsConfig?.Columns || 0,
+        DeskType: clsConfig?.deskType || clsConfig?.DeskType || 'single',
         Date: serverResponse.Date || Math.floor(Date.now() / 1000),
         Fitness: serverResponse.Fitness || 0,
         ID: serverResponse.ID || Date.now().toString()

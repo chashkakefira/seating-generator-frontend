@@ -39,8 +39,8 @@
               class="form-range"
               v-model.number="priorities.medical"
               min="0"
-              max="100"
-              step="1"
+              max="1"
+              step="0.05"
             />
           </div>
 
@@ -58,8 +58,8 @@
               class="form-range"
               v-model.number="priorities.friends"
               min="0"
-              max="100"
-              step="1"
+              max="1"
+              step="0.05"
             />
           </div>
 
@@ -75,8 +75,8 @@
               class="form-range"
               v-model.number="priorities.enemies"
               min="0"
-              max="100"
-              step="1"
+              max="1"
+              step="0.05"
             />
           </div>
 
@@ -94,8 +94,8 @@
               class="form-range"
               v-model.number="priorities.preferences"
               min="0"
-              max="100"
-              step="1"
+              max="1"
+              step="0.05"
             />
           </div>
           <div class="slider-group mb-4">
@@ -110,8 +110,8 @@
               class="form-range"
               v-model.number="priorities.fill"
               min="0"
-              max="100"
-              step="1"
+              max="1"
+              step="0.05"
             />
           </div>
 
@@ -121,9 +121,7 @@
               @click="handleGenerate"
               :disabled="isGenerating"
             >
-              <span v-if="!isGenerating"
-                ><i class="bi bi-magic me-2"></i>Рассадить!</span
-              >
+              <span v-if="!isGenerating"><i-bi-magic />Рассадить!</span>
               <span v-else
                 ><span class="spinner-border spinner-border-sm me-2"></span
                 >Думаю...</span
@@ -131,7 +129,7 @@
             </button>
             <BButton
               :disabled="!response || response.length === 0"
-              @click="handleSave(route.params.id, response)"
+              @click="handleSave"
               variant="outline-primary"
               >Сохранить рассадку</BButton
             >
@@ -276,7 +274,11 @@ const isToastVisible = ref(false);
 const isWarnToastVisible = ref(false);
 
 const handleSave = () => {
-  const result = saveSeating(route.params.id, response.value);
+  const result = saveSeating(
+    route.params.id,
+    response.value,
+    request.value.classConfig
+  );
 
   if (result.success) {
     isToastVisible.value = true;
