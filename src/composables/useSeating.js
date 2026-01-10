@@ -16,11 +16,11 @@ export function useSeating() {
     }
   })
   const priorities = ref({
-    medical: 80,
-    friends: 40,
-    enemies: 70,
-    preferences: 65,
-    fill: 30,
+    medical: 0.8,
+    friends: 0.4,
+    enemies: 0.7,
+    preferences: 0.5,
+    fill: 0.3,
   })
   const response = ref([])
   const error = ref('')
