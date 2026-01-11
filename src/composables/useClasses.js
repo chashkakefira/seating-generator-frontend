@@ -13,7 +13,7 @@ export default function useClasses()
         classes.value = saved ? JSON.parse(saved) : [];
     };
     const addNewClass = (name) => {
-        const newClass = { id: Date.now(), name, students: [], preferences: [], forbidden: [], seatings: [], priorities: { medical: 100, friends: 80, enemies: 40, preferences: 30, fill: 20, }};
+        const newClass = { id: Date.now(), name, students: [], preferences: [], forbidden: [], seatings: [], priorities: { medical: 0.8, friends: 0.4, enemies: 0.7, preferences: 0.5, fill: 0.3, }};
         classes.value.push(newClass);
         saveClasses();
     };
