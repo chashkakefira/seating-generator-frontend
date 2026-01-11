@@ -69,7 +69,7 @@ import useClasses from "./composables/useClasses.js";
 
 const route = useRoute();
 const router = useRouter();
-const { classes, loadClasses, handleSave, hasErrors } = useClasses();
+const { classes, loadClasses, saveClasses, hasErrors } = useClasses();
 
 onMounted(() => {
   loadClasses();
@@ -82,7 +82,7 @@ const activeClass = computed(() => {
 });
 
 const handleSeating = () => {
-  handleSave();
+  saveClasses();
   const id = route.params.id;
   if (!hasErrors.value && id) {
     router.push(`/generate/${id}`);
