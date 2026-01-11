@@ -165,19 +165,12 @@ export default function useClasses()
       if (!currentCls) return false;
       return getValidationErrors(currentCls).length > 0;
     });
-
-    const handleSave = () => {
-      if (hasErrors.value) return false;
-      saveClasses();
-      return true;
-    };
     return {
         classes,
         selectedClassId,
         newClassName,
         currentClass,
         hasErrors,
-        handleSave,
         saveSeating,
         getValidationErrors,
         saveClasses,

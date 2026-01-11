@@ -609,12 +609,19 @@ const {
   loadClasses,
   checkName,
   getValidationErrors,
-  handleSave,
+  saveClasses,
 } = useClasses();
 const showVisualizer = ref(false);
 const currentStudent = ref(null);
 const editMode = ref("");
 const selection = ref({ rows: [], cols: [] });
+
+const handleSave = () => {
+  if (hasErrors.value) return false;
+  saveClasses();
+  showSuccessToast.value = true;
+  return true;
+};
 
 const cls = computed(() => {
   const c = classes.value.find((x) => x.id == route.params.id);
