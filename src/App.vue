@@ -36,21 +36,22 @@ const handleSeating = () => {
       class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm flex-shrink-0 py-1"
     >
       <div class="container-fluid">
-        <router-link class="navbar-brand fw-bold" to="/">
-          Генератор рассадок
-        </router-link>
-        <div
-          class="d-none d-sm-flex align-items-center border-start border-white border-opacity-25 ps-2 ms-1"
-        >
-          <a
-            href="https://github.com/chashkakefira/seating-generator"
-            target="_blank"
-            class="text-white text-decoration-none opacity-75 hover-opacity-100 d-flex align-items-center"
-            style="font-size: 0.75rem"
-          >
-            <i-bi-github class="me-1" />
-            Исходный код
-          </a>
+        <div class="d-flex align-items-center">
+          <router-link class="navbar-brand fw-bold me-1" to="/">
+            Генератор рассадок
+          </router-link>
+
+          <div class="border-start border-white border-opacity-25 ps-2 ms-1">
+            <a
+              href="https://github.com/chashkakefira/seating-generator"
+              target="_blank"
+              class="text-white-50 text-decoration-none d-flex align-items-center"
+              style="font-size: 0.7rem"
+            >
+              <i-bi-github class="me-1" />
+              Исходный код
+            </a>
+          </div>
         </div>
 
         <button
@@ -63,17 +64,19 @@ const handleSeating = () => {
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav me-auto">
+          <ul class="navbar-nav me-auto ms-4">
             <li class="nav-item">
-              <router-link class="nav-link" to="/classes-list">
-                Мои классы
-              </router-link>
+              <router-link class="nav-link" to="/classes-list"
+                >Мои классы</router-link
+              >
             </li>
-
-            <li v-if="activeClass" class="nav-item d-flex align-items-center">
-              <span class="navbar-text mx-2 text-white-50">/</span>
+            <li
+              v-if="activeClass"
+              class="nav-item d-flex align-items-center text-white-50"
+            >
+              <span class="mx-2">/</span>
               <router-link
-                class="nav-link active fw-bold"
+                class="nav-link active fw-bold text-white"
                 :to="{ name: 'ClassEditor', params: { id: activeClass.id } }"
               >
                 {{ activeClass.name }}
@@ -85,12 +88,11 @@ const handleSeating = () => {
             <li v-if="!route.path.includes('generate')" class="nav-item">
               <BButton
                 variant="light"
-                class="rounded-pill px-4 fw-bold text-primary border-primary shadow-sm"
+                class="rounded-pill px-4 fw-bold text-primary shadow-sm"
                 :disabled="hasErrors"
                 @click="handleSeating"
               >
-                <i-bi-magic class="me-2" />
-                Рассадить
+                <i-bi-magic class="me-2" /> Рассадить
               </BButton>
             </li>
           </ul>
@@ -98,22 +100,18 @@ const handleSeating = () => {
       </div>
     </nav>
 
-    <main
-      class="container-fluid flex-grow-1 overflow-auto position-relative p-0"
-    >
+    <main class="flex-grow-1 overflow-hidden overflow-y-auto bg-light">
       <router-view />
     </main>
   </div>
 </template>
 
 <style>
-.navbar-brand {
-  letter-spacing: -0.5px;
-}
-.nav-link {
-  transition: opacity 0.2s;
-}
-.nav-link:hover {
-  opacity: 0.8;
+/* Только самый минимум для работы макета */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
 }
 </style>
