@@ -107,7 +107,6 @@ const handleSeating = () => {
 </template>
 
 <style>
-/* Только самый минимум для работы макета */
 html,
 body {
   height: 100%;
