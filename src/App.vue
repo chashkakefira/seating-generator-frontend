@@ -39,58 +39,25 @@ const handleSeating = () => {
         <router-link class="navbar-brand fw-bold" to="/">
           Генератор рассадок
         </router-link>
-
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-              <router-link class="nav-link" to="/classes-list">
-                Мои классы
-              </router-link>
-            </li>
-
-            <li v-if="activeClass" class="nav-item d-flex align-items-center">
-              <span class="navbar-text mx-2 text-white-50">/</span>
-              <router-link
-                class="nav-link active fw-bold"
-                :to="{ name: 'ClassEditor', params: { id: activeClass.id } }"
-              >
-                {{ activeClass.name }}
-              </router-link>
-            </li>
-          </ul>
-
-          <ul v-if="activeClass" class="navbar-nav ms-auto">
-            <li v-if="!route.path.includes('generate')" class="nav-item">
-              <BButton
-                v-if="!route.path.includes('generate')"
-                variant="light"
-                class="rounded-pill px-4 fw-bold text-primary border-primary shadow-sm"
-                :disabled="hasErrors"
-                @click="handleSeating"
-              >
-                <i-bi-magic class="me-2" />
-                Рассадить
-              </BButton>
-            </li>
-          </ul>
-        </div>
       </div>
     </nav>
 
-    <main
-      class="container-fluid flex-grow-1 overflow-hidden position-relative p-0"
-    >
+    <main class="flex-grow-1 overflow-y-auto position-relative p-0">
       <router-view />
     </main>
+
+    <footer class="py-3 bg-light border-top flex-shrink-0">
+      <div class="container-fluid text-center">
+        <span class="text-muted small">
+          © 2026 Прокофьев Даниил |
+          <a
+            href="https://github.com/chashkakefira/seating-generator"
+            class="text-decoration-none text-primary"
+            >Исходный код (AGPLv3)</a
+          >
+        </span>
+      </div>
+    </footer>
   </div>
 </template>
 
