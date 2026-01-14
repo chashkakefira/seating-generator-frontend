@@ -1,18 +1,38 @@
-Генератор школьных рассадок - frontend
+Генератор школьных рассадок (Frontend)
 Copyright (C) 2026 Прокофьев Даниил <danieldzen@yandex.ru>
-Лицензировано под GNU Affero General Public License v3.0.
-Часть проекта генератора рассадок
 
-Данное программное обеспечение разработано с использованием следующих 
-сторонних компонентов с открытым исходным кодом:
+Этот проект лицензирован под GNU Affero General Public License v3.0.
 
-1. Vue.js (MIT License) - https://vuejs.org/
-2. Bootstrap (MIT License) - https://bootstrap-vue-next.github.io/bootstrap-vue-next/
-3. Axios, jspdf, vuedraggable (MIT License)
-4. Caddy Server (Apache License 2.0) - https://caddyserver.com/
+Данное программное обеспечение включает в себя следующие сторонние 
+компоненты и библиотеки:
 
-Использован шрифт Roboto, лицензированный под Apache License ver. 2. Ознакомиться с 
-лицензией можно в public/fonts/ROBOTO-LICENSE.txt
+1. Vue.js
+   Copyright (c) 2013-present, Yuxi (Evan) You
+   License: MIT (https://github.com/vuejs/core/blob/main/LICENSE)
 
-Полный список зависимостей и их лицензий доступен в файле
-package.json
+2. BootstrapVueNext
+   Copyright (c) 2022-present, BootstrapVueNext Team
+   License: MIT (https://github.com/bootstrap-vue-next/bootstrap-vue-next/blob/main/LICENSE)
+
+3. Bootstrap
+   Copyright (c) 2011-2026 The Bootstrap Authors
+   License: MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
+
+4. Vite
+   Copyright (c) 2019-present, Yuxi (Evan) You and Vite contributors
+   License: MIT (https://github.com/vitejs/vite/blob/main/LICENSE)
+
+5. jsPDF
+   Copyright (c) 2010-2021 James Hall, https://github.com/MrRio/jsPDF
+   License: MIT (https://github.com/parallax/jsPDF/blob/master/LICENSE)
+
+6. Axios
+   Copyright (c) 2014-present Matt Zabriskie
+   License: MIT (https://github.com/axios/axios/blob/master/LICENSE)
+
+7. Iconify / Unplugin Icons
+   Copyright (c) 2020-present Iconify
+   License: MIT (https://github.com/iconify/iconify/blob/master/LICENSE)
+
+Полный список зависимостей и их версий зафиксирован 
+в файле package-lock.json.
