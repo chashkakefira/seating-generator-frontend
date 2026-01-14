@@ -1,3 +1,177 @@
+<script setup>
+/*
+ * Copyright (C) 2026 Прокофьев Даниил <danieldzen@yandex.ru>
+ * Лицензировано под GNU Affero General Public License v3.0
+ * Часть проекта генератора рассадок
+ */
+import { computed, onMounted, watch, ref } from "vue";
+import { useRoute } from "vue-router";
+import useClasses from "./composables/useClasses.js";
+import Papa from "papaparse";
+const csvInput = ref(null);
+
+const route = useRoute();
+const {
+  classes,
+  hasErrors,
+  loadClasses,
+  checkName,
+  getValidationErrors,
+  saveClasses,
+} = useClasses();
+const showVisualizer = ref(false);
+const currentStudent = ref(null);
+const editMode = ref("");
+const selection = ref({ rows: [], cols: [] });
+
+const handleSave = () => {
+  if (hasErrors.value) return false;
+  saveClasses();
+  showSuccessToast.value = true;
+  return true;
+};
+
+const cls = computed(() => {
+  const c = classes.value.find((x) => x.id == route.params.id);
+  if (c) {
+    if (!c.students) c.students = [];
+    if (!c.classConfig)
+      c.classConfig = { rows: 3, columns: 2, deskType: "double" };
+  }
+  return c;
+});
+
+const addStudent = () => {
+  cls.value.students.push({
+    id: Date.now(),
+    name: "",
+    preferredRows: "",
+    preferredColumns: "",
+    medicalPreferredRow: "",
+    medicalPreferredColumn: "",
+  });
+};
+
+const openVisualizer = (student, mode) => {
+  currentStudent.value = student;
+  editMode.value = mode;
+  selection.value.rows = [];
+  selection.value.cols = [];
+
+  const rVal =
+    mode === "prefs" ? student.preferredRows : student.medicalPreferredRow;
+  const cVal =
+    mode === "prefs"
+      ? student.preferredColumns
+      : student.medicalPreferredColumn;
+
+  if (rVal) {
+    rVal.split(",").forEach((r) => {
+      const num = parseInt(r.trim());
+      if (!isNaN(num)) selection.value.rows.push(num);
+    });
+  }
+  if (cVal) {
+    cVal.split(",").forEach((c) => {
+      const num = parseInt(c.trim());
+      if (!isNaN(num)) selection.value.cols.push(num);
+    });
+  }
+  showVisualizer.value = true;
+};
+
+const getSeatIndices = (colNum) => {
+  if (cls.value.classConfig.deskType === "double") {
+    return [colNum * 2 - 1, colNum * 2];
+  }
+  return [colNum];
+};
+
+const isColSelected = (colNum) => {
+  const indices = getSeatIndices(colNum);
+  return indices.every((idx) => selection.value.cols.includes(idx));
+};
+
+const toggleCol = (colNum) => {
+  const indices = getSeatIndices(colNum);
+  const alreadySelected = isColSelected(colNum);
+
+  if (alreadySelected) {
+    selection.value.cols = selection.value.cols.filter(
+      (id) => !indices.includes(id)
+    );
+  } else {
+    indices.forEach((idx) => {
+      if (!selection.value.cols.includes(idx)) {
+        selection.value.cols.push(idx);
+      }
+    });
+  }
+};
+
+const toggleRow = (rowNum) => {
+  const idx = selection.value.rows.indexOf(rowNum);
+  if (idx > -1) {
+    selection.value.rows.splice(idx, 1);
+  } else {
+    selection.value.rows.push(rowNum);
+  }
+};
+
+const saveVisualSelection = () => {
+  if (!currentStudent.value) return;
+  const rRes = selection.value.rows.sort((a, b) => a - b).join(", ");
+  const cRes = selection.value.cols.sort((a, b) => a - b).join(", ");
+
+  if (editMode.value === "prefs") {
+    currentStudent.value.preferredRows = rRes;
+    currentStudent.value.preferredColumns = cRes;
+  } else {
+    currentStudent.value.medicalPreferredRow = rRes;
+    currentStudent.value.medicalPreferredColumn = cRes;
+  }
+};
+const exportToCSV = () => {
+  const configHeader = `CONFIG;${cls.value.name};${cls.value.classConfig.rows};${cls.value.classConfig.columns};${cls.value.classConfig.deskType}`;
+  const data = cls.value.students.map((s) => {
+    const friendPair = cls.value.preferences.find((p) => p.includes(s.name));
+    const friendName = friendPair
+      ? friendPair.find((name) => name !== s.name)
+      : "";
+
+    const enemyPair = cls.value.forbidden?.find((p) => p.includes(s.name));
+    const enemyName = enemyPair
+      ? enemyPair.find((name) => name !== s.name)
+      : "";
+
+    return {
+      Имя: s.name,
+      Парты: s.preferredRows,
+      Ряды: s.preferredColumns,
+      Мед_Парты: s.medicalPreferredRow,
+      Мед_Ряды: s.medicalPreferredColumn,
+      Дружит_с: friendName,
+      Враждует_с: enemyName,
+    };
+  });
+
+  const csvData = Papa.unparse(data);
+
+  const finalContent = configHeader + "\n" + csvData;
+
+  const blob = new Blob(["\ufeff" + finalContent], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `${cls.value.name}.csv`);
+  link.click();
+};
+const showSuccessToast = ref(false);
+const showErrorsModal = ref(false);
+onMounted(() => loadClasses());
+</script>
 <template>
   <div
     class="toast-container position-fixed top-0 end-0 p-3"
@@ -594,173 +768,3 @@
     </BModal>
   </div>
 </template>
-
-<script setup>
-import { computed, onMounted, watch, ref } from "vue";
-import { useRoute } from "vue-router";
-import useClasses from "./composables/useClasses.js";
-import Papa from "papaparse";
-const csvInput = ref(null);
-
-const route = useRoute();
-const {
-  classes,
-  hasErrors,
-  loadClasses,
-  checkName,
-  getValidationErrors,
-  saveClasses,
-} = useClasses();
-const showVisualizer = ref(false);
-const currentStudent = ref(null);
-const editMode = ref("");
-const selection = ref({ rows: [], cols: [] });
-
-const handleSave = () => {
-  if (hasErrors.value) return false;
-  saveClasses();
-  showSuccessToast.value = true;
-  return true;
-};
-
-const cls = computed(() => {
-  const c = classes.value.find((x) => x.id == route.params.id);
-  if (c) {
-    if (!c.students) c.students = [];
-    if (!c.classConfig)
-      c.classConfig = { rows: 3, columns: 2, deskType: "double" };
-  }
-  return c;
-});
-
-const addStudent = () => {
-  cls.value.students.push({
-    id: Date.now(),
-    name: "",
-    preferredRows: "",
-    preferredColumns: "",
-    medicalPreferredRow: "",
-    medicalPreferredColumn: "",
-  });
-};
-
-const openVisualizer = (student, mode) => {
-  currentStudent.value = student;
-  editMode.value = mode;
-  selection.value.rows = [];
-  selection.value.cols = [];
-
-  const rVal =
-    mode === "prefs" ? student.preferredRows : student.medicalPreferredRow;
-  const cVal =
-    mode === "prefs"
-      ? student.preferredColumns
-      : student.medicalPreferredColumn;
-
-  if (rVal) {
-    rVal.split(",").forEach((r) => {
-      const num = parseInt(r.trim());
-      if (!isNaN(num)) selection.value.rows.push(num);
-    });
-  }
-  if (cVal) {
-    cVal.split(",").forEach((c) => {
-      const num = parseInt(c.trim());
-      if (!isNaN(num)) selection.value.cols.push(num);
-    });
-  }
-  showVisualizer.value = true;
-};
-
-const getSeatIndices = (colNum) => {
-  if (cls.value.classConfig.deskType === "double") {
-    return [colNum * 2 - 1, colNum * 2];
-  }
-  return [colNum];
-};
-
-const isColSelected = (colNum) => {
-  const indices = getSeatIndices(colNum);
-  return indices.every((idx) => selection.value.cols.includes(idx));
-};
-
-const toggleCol = (colNum) => {
-  const indices = getSeatIndices(colNum);
-  const alreadySelected = isColSelected(colNum);
-
-  if (alreadySelected) {
-    selection.value.cols = selection.value.cols.filter(
-      (id) => !indices.includes(id)
-    );
-  } else {
-    indices.forEach((idx) => {
-      if (!selection.value.cols.includes(idx)) {
-        selection.value.cols.push(idx);
-      }
-    });
-  }
-};
-
-const toggleRow = (rowNum) => {
-  const idx = selection.value.rows.indexOf(rowNum);
-  if (idx > -1) {
-    selection.value.rows.splice(idx, 1);
-  } else {
-    selection.value.rows.push(rowNum);
-  }
-};
-
-const saveVisualSelection = () => {
-  if (!currentStudent.value) return;
-  const rRes = selection.value.rows.sort((a, b) => a - b).join(", ");
-  const cRes = selection.value.cols.sort((a, b) => a - b).join(", ");
-
-  if (editMode.value === "prefs") {
-    currentStudent.value.preferredRows = rRes;
-    currentStudent.value.preferredColumns = cRes;
-  } else {
-    currentStudent.value.medicalPreferredRow = rRes;
-    currentStudent.value.medicalPreferredColumn = cRes;
-  }
-};
-const exportToCSV = () => {
-  const configHeader = `CONFIG;${cls.value.name};${cls.value.classConfig.rows};${cls.value.classConfig.columns};${cls.value.classConfig.deskType}`;
-  const data = cls.value.students.map((s) => {
-    const friendPair = cls.value.preferences.find((p) => p.includes(s.name));
-    const friendName = friendPair
-      ? friendPair.find((name) => name !== s.name)
-      : "";
-
-    const enemyPair = cls.value.forbidden?.find((p) => p.includes(s.name));
-    const enemyName = enemyPair
-      ? enemyPair.find((name) => name !== s.name)
-      : "";
-
-    return {
-      Имя: s.name,
-      Парты: s.preferredRows,
-      Ряды: s.preferredColumns,
-      Мед_Парты: s.medicalPreferredRow,
-      Мед_Ряды: s.medicalPreferredColumn,
-      Дружит_с: friendName,
-      Враждует_с: enemyName,
-    };
-  });
-
-  const csvData = Papa.unparse(data);
-
-  const finalContent = configHeader + "\n" + csvData;
-
-  const blob = new Blob(["\ufeff" + finalContent], {
-    type: "text/csv;charset=utf-8;",
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", `${cls.value.name}.csv`);
-  link.click();
-};
-const showSuccessToast = ref(false);
-const showErrorsModal = ref(false);
-onMounted(() => loadClasses());
-</script>

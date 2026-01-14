@@ -1,62 +1,9 @@
-<template>
-  <div class="desks-container d-flex flex-column gap-4 p-4">
-    <div
-      class="blackboard bg-dark mt-2 mx-auto rounded d-flex align-items-center justify-content-center text-white mb-5"
-    >
-      ДОСКА
-    </div>
-    <div
-      v-for="row in config.rows"
-      :key="row"
-      class="desk-row d-flex gap-4 justify-content-center"
-    >
-      <div
-        class="row-marker d-flex align-items-center justify-content-center text-muted fw-bold small"
-      >
-        {{ row }}
-      </div>
-
-      <div
-        v-for="col in config.columns"
-        :key="col"
-        class="desk-unit shadow-sm bg-white rounded border d-flex overflow-hidden"
-        :class="config.deskType"
-      >
-        <template v-if="config.deskType === 'double'">
-          <div
-            class="seat flex-fill d-flex align-items-center justify-content-center p-1 border-end"
-            :style="getSeatStyle(row - 1, (col - 1) * 2)"
-          >
-            <span class="student-name" v-fit-text>{{
-              getStudentName(row - 1, (col - 1) * 2)
-            }}</span>
-          </div>
-          <div
-            class="seat flex-fill d-flex align-items-center justify-content-center p-1"
-            :style="getSeatStyle(row - 1, (col - 1) * 2 + 1)"
-          >
-            <span class="student-name" v-fit-text>{{
-              getStudentName(row - 1, (col - 1) * 2 + 1)
-            }}</span>
-          </div>
-        </template>
-
-        <template v-else>
-          <div
-            class="seat flex-fill d-flex align-items-center justify-content-center p-1"
-            :style="getSeatStyle(row - 1, col - 1)"
-          >
-            <span class="student-name small fw-medium" v-fit-text>{{
-              getStudentName(row - 1, col - 1)
-            }}</span>
-          </div>
-        </template>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
+/*
+ * Copyright (C) 2026 Прокофьев Даниил <danieldzen@yandex.ru>
+ * Лицензировано под GNU Affero General Public License v3.0
+ * Часть проекта генератора рассадок
+ */
 const props = defineProps({
   config: Object,
   seating: Array,
@@ -115,6 +62,63 @@ const adjustFontSize = (el) => {
   }
 };
 </script>
+<template>
+  <div class="desks-container d-flex flex-column gap-4 p-4">
+    <div
+      class="blackboard bg-dark mt-2 mx-auto rounded d-flex align-items-center justify-content-center text-white mb-5"
+    >
+      ДОСКА
+    </div>
+    <div
+      v-for="row in config.rows"
+      :key="row"
+      class="desk-row d-flex gap-4 justify-content-center"
+    >
+      <div
+        class="row-marker d-flex align-items-center justify-content-center text-muted fw-bold small"
+      >
+        {{ row }}
+      </div>
+
+      <div
+        v-for="col in config.columns"
+        :key="col"
+        class="desk-unit shadow-sm bg-white rounded border d-flex overflow-hidden"
+        :class="config.deskType"
+      >
+        <template v-if="config.deskType === 'double'">
+          <div
+            class="seat flex-fill d-flex align-items-center justify-content-center p-1 border-end"
+            :style="getSeatStyle(row - 1, (col - 1) * 2)"
+          >
+            <span class="student-name" v-fit-text>{{
+              getStudentName(row - 1, (col - 1) * 2)
+            }}</span>
+          </div>
+          <div
+            class="seat flex-fill d-flex align-items-center justify-content-center p-1"
+            :style="getSeatStyle(row - 1, (col - 1) * 2 + 1)"
+          >
+            <span class="student-name" v-fit-text>{{
+              getStudentName(row - 1, (col - 1) * 2 + 1)
+            }}</span>
+          </div>
+        </template>
+
+        <template v-else>
+          <div
+            class="seat flex-fill d-flex align-items-center justify-content-center p-1"
+            :style="getSeatStyle(row - 1, col - 1)"
+          >
+            <span class="student-name small fw-medium" v-fit-text>{{
+              getStudentName(row - 1, col - 1)
+            }}</span>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .classroom-canvas {

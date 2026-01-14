@@ -1,3 +1,141 @@
+<script setup>
+/*
+ * Copyright (C) 2026 Прокофьев Даниил <danieldzen@yandex.ru>
+ * Лицензировано под GNU Affero General Public License v3.0
+ * Часть проекта генератора рассадок
+ */
+import { ref, watch, onMounted } from "vue";
+import { BApp } from "bootstrap-vue-next";
+import Papa from "papaparse";
+import useClasses from "./composables/useClasses.js";
+
+const {
+  classes,
+  newClassName,
+  addNewClass,
+  deleteClass,
+  saveClasses,
+  loadClasses,
+} = useClasses();
+const showModal = ref(false);
+
+const handleDelete = (cls) => {
+  if (
+    confirm(
+      `Вы уверены, что хотите удалить класс "${cls.name}" со всей историей рассадок?`
+    )
+  ) {
+    deleteClass(cls.id);
+  }
+};
+
+const getRandomColor = (id) => {
+  const colors = [
+    "bg-primary",
+    "bg-success",
+    "bg-warning",
+    "bg-info",
+    "bg-danger",
+  ];
+  return colors[id % colors.length];
+};
+
+const importCSV = (event) => {
+  const newClass = {
+    id: Date.now(),
+    name: "Новый класс",
+    classConfig: {
+      rows: 3,
+      columns: 2,
+      deskType: "double",
+    },
+    students: [],
+    preferences: [],
+    forbidden: [],
+  };
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const content = e.target.result;
+    const lines = content.split(/\r?\n/);
+
+    let csvToParse = content;
+
+    if (lines[0].startsWith("CONFIG;")) {
+      const parts = lines[0].split(";");
+      if (parts.length >= 5) {
+        newClass.name = parts[1];
+        newClass.classConfig.rows = parseInt(parts[2]) || 3;
+        newClass.classConfig.columns = parseInt(parts[3]) || 2;
+        newClass.classConfig.deskType = parts[4].trim();
+      }
+      lines.shift();
+      csvToParse = lines.join("\n");
+    }
+
+    Papa.parse(csvToParse, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const rows = results.data;
+
+        const importedStudents = rows.map((row) => ({
+          id: Math.floor(Date.now() + Math.random() * 10000),
+          name: row["Имя"] || "Без имени",
+          preferredRows: row["Парты"] || "",
+          preferredColumns: row["Ряды"] || "",
+          medicalPreferredRow: row["Мед_Парты"] || "",
+          medicalPreferredColumn: row["Мед_Ряды"] || "",
+        }));
+
+        const newPrefs = [];
+        const newForbidden = [];
+
+        rows.forEach((row) => {
+          const currentName = row["Имя"];
+          if (!currentName) return;
+
+          if (row["Дружит_с"]) {
+            const friendName = row["Дружит_с"].trim();
+            const exists = newPrefs.find(
+              (p) => p.includes(currentName) && p.includes(friendName)
+            );
+            if (!exists) newPrefs.push([currentName, friendName]);
+          }
+
+          if (row["Враждует_с"]) {
+            const enemyName = row["Враждует_с"].trim();
+            const exists = newForbidden.find(
+              (p) => p.includes(currentName) && p.includes(enemyName)
+            );
+            if (!exists) newForbidden.push([currentName, enemyName]);
+          }
+        });
+        newClass.students = importedStudents;
+        newClass.preferences = newPrefs;
+        newClass.forbidden = newForbidden;
+        classes.value.push(newClass);
+        saveClasses();
+      },
+      error: (err) => {
+        console.error("Ошибка PapaParse:", err);
+        alert("Ошибка при чтении CSV файла");
+      },
+    });
+  };
+
+  reader.readAsText(file, "UTF-8");
+  event.target.value = "";
+};
+
+onMounted(() => {
+  loadClasses();
+});
+
+watch(classes, () => saveClasses(), { deep: true });
+</script>
 <template>
   <BApp>
     <div class="container py-5">
@@ -150,140 +288,6 @@
   </BApp>
   <router-view />
 </template>
-
-<script setup>
-import { ref, watch, onMounted } from "vue";
-import { BApp } from "bootstrap-vue-next";
-import Papa from "papaparse";
-import useClasses from "./composables/useClasses.js";
-
-const {
-  classes,
-  newClassName,
-  addNewClass,
-  deleteClass,
-  saveClasses,
-  loadClasses,
-} = useClasses();
-const showModal = ref(false);
-
-const handleDelete = (cls) => {
-  if (
-    confirm(
-      `Вы уверены, что хотите удалить класс "${cls.name}" со всей историей рассадок?`
-    )
-  ) {
-    deleteClass(cls.id);
-  }
-};
-
-const getRandomColor = (id) => {
-  const colors = [
-    "bg-primary",
-    "bg-success",
-    "bg-warning",
-    "bg-info",
-    "bg-danger",
-  ];
-  return colors[id % colors.length];
-};
-
-const importCSV = (event) => {
-  const newClass = {
-    id: Date.now(),
-    name: "Новый класс",
-    classConfig: {
-      rows: 3,
-      columns: 2,
-      deskType: "double",
-    },
-    students: [],
-    preferences: [],
-    forbidden: [],
-  };
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const content = e.target.result;
-    const lines = content.split(/\r?\n/);
-
-    let csvToParse = content;
-
-    if (lines[0].startsWith("CONFIG;")) {
-      const parts = lines[0].split(";");
-      if (parts.length >= 5) {
-        newClass.name = parts[1];
-        newClass.classConfig.rows = parseInt(parts[2]) || 3;
-        newClass.classConfig.columns = parseInt(parts[3]) || 2;
-        newClass.classConfig.deskType = parts[4].trim();
-      }
-      lines.shift();
-      csvToParse = lines.join("\n");
-    }
-
-    Papa.parse(csvToParse, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const rows = results.data;
-
-        const importedStudents = rows.map((row) => ({
-          id: Math.floor(Date.now() + Math.random() * 10000),
-          name: row["Имя"] || "Без имени",
-          preferredRows: row["Парты"] || "",
-          preferredColumns: row["Ряды"] || "",
-          medicalPreferredRow: row["Мед_Парты"] || "",
-          medicalPreferredColumn: row["Мед_Ряды"] || "",
-        }));
-
-        const newPrefs = [];
-        const newForbidden = [];
-
-        rows.forEach((row) => {
-          const currentName = row["Имя"];
-          if (!currentName) return;
-
-          if (row["Дружит_с"]) {
-            const friendName = row["Дружит_с"].trim();
-            const exists = newPrefs.find(
-              (p) => p.includes(currentName) && p.includes(friendName)
-            );
-            if (!exists) newPrefs.push([currentName, friendName]);
-          }
-
-          if (row["Враждует_с"]) {
-            const enemyName = row["Враждует_с"].trim();
-            const exists = newForbidden.find(
-              (p) => p.includes(currentName) && p.includes(enemyName)
-            );
-            if (!exists) newForbidden.push([currentName, enemyName]);
-          }
-        });
-        newClass.students = importedStudents;
-        newClass.preferences = newPrefs;
-        newClass.forbidden = newForbidden;
-        classes.value.push(newClass);
-        saveClasses();
-      },
-      error: (err) => {
-        console.error("Ошибка PapaParse:", err);
-        alert("Ошибка при чтении CSV файла");
-      },
-    });
-  };
-
-  reader.readAsText(file, "UTF-8");
-  event.target.value = "";
-};
-
-onMounted(() => {
-  loadClasses();
-});
-
-watch(classes, () => saveClasses(), { deep: true });
-</script>
 
 <style scoped>
 .hover-lift {

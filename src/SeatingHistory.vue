@@ -1,181 +1,9 @@
-<template>
-  <BApp>
-    <div v-if="cls" class="container py-5 min-vh-100">
-      <div class="d-flex align-items-center justify-content-between mb-5">
-        <div class="d-flex align-items-center">
-          <BButton
-            :to="`/`"
-            variant="light"
-            class="me-4 border shadow-sm hover-lift"
-          >
-            <i-bi-arrow-left />
-          </BButton>
-          <div>
-            <h2 class="fw-bold mb-0 text-dark">Архив рассадок</h2>
-            <p class="text-muted mb-0 small">
-              {{ cls.name }} • {{ cls.students?.length }} учеников
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="cls.seatings?.length" class="row g-4">
-        <div
-          v-for="(seating, index) in [...cls.seatings].reverse()"
-          :key="seating.Date"
-          class="col-md-6 col-lg-4 fade-in-up"
-          :style="{ animationDelay: index * 0.05 + 's' }"
-        >
-          <div class="card h-100 border-0 shadow-sm history-card">
-            <div class="card-body p-4">
-              <div
-                class="d-flex justify-content-between align-items-start mb-3"
-              >
-                <div class="variant-badge">
-                  Вариант №{{ cls.seatings.length - index }}
-                </div>
-                <BButton
-                  variant="link"
-                  class="p-0 text-danger opacity-50 hover-opacity-100"
-                  @click="confirmDelete(seating.Date)"
-                >
-                  <i-bi-trash />
-                </BButton>
-              </div>
-
-              <div class="mb-4">
-                <div class="d-flex align-items-center text-dark fw-medium">
-                  <i-bi-calendar3 class="me-2 text-primary" />
-                  {{ formatFullDate(seating.Date).date }}
-                </div>
-                <div class="small text-muted ms-4">
-                  {{ formatFullDate(seating.Date).time }}
-                </div>
-              </div>
-
-              <BButton
-                variant="primary"
-                class="w-100 rounded-3 py-2 fw-bold d-flex align-items-center justify-content-center btn-view"
-                @click="openPreview(seating)"
-              >
-                Посмотреть схему
-                <i-bi-eye class="ms-2" />
-              </BButton>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="text-center py-5">
-        <div class="empty-state-icon mb-3">
-          <i-bi-folder2-open class="display-1 text-light" />
-        </div>
-        <h4 class="text-muted">История пуста</h4>
-        <p class="text-secondary">
-          Здесь будут появляться сохраненные варианты рассадки.
-        </p>
-      </div>
-    </div>
-
-    <BModal
-      v-model="showModal"
-      size="xl"
-      centered
-      :hide-footer="true"
-      footer-class="d-none"
-      body-class="p-0 overflow-hidden"
-      content-class="border-0 shadow-2xl glass-modal"
-    >
-      <template #modal-header>
-        <div
-          class="d-flex align-items-center justify-content-between w-100 px-2"
-        >
-          <div>
-            <h5 class="modal-title fw-bold mb-0">{{ selectedSeatingDate }}</h5>
-            <span class="badge bg-primary-subtle text-primary small"
-              >Просмотр архива</span
-            >
-          </div>
-
-          <div class="canvas-tools">
-            <div class="btn-group bg-white p-1 rounded-3 border shadow-sm">
-              <button
-                class="btn btn-sm btn-light-hover rounded-2 px-3"
-                @click="zoomOut"
-              >
-                -
-              </button>
-              <div
-                class="d-flex align-items-center px-3 fw-bold text-primary small border-start border-end"
-              >
-                {{ Math.round(scale * 100) }}%
-              </div>
-              <button
-                class="btn btn-sm btn-light-hover rounded-2 px-3"
-                @click="zoomIn"
-              >
-                +
-              </button>
-              <button
-                class="btn btn-sm btn-light-hover rounded-2 ms-1 text-muted"
-                @click="resetView"
-              >
-                <i-bi-arrow-counterclockwise />
-              </button>
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <div class="d-flex flex-column bg-white">
-        <div class="canvas-viewport">
-          <div
-            class="grab-surface"
-            @mousedown.prevent="startPan"
-            @mousemove="panning"
-            @mouseup="endPan"
-            @mouseleave="endPan"
-            @wheel.prevent="onWheel"
-          >
-            <div class="canvas-content" :style="canvasStyle">
-              <ClassMap
-                v-if="activeSeatingData"
-                :config="historyConfig"
-                :seating="activeSeatingData"
-              />
-            </div>
-          </div>
-          <div class="canvas-hint">
-            <i-bi-arrows-move class="me-2" />
-            <span>Левая клавиша мыши для перемещения • Колесо для зума</span>
-          </div>
-        </div>
-
-        <div
-          class="px-4 py-3 bg-white border-top d-flex justify-content-between align-items-center"
-        >
-          <BButton
-            variant="light"
-            class="rounded-pill px-4 border"
-            @click="showModal = false"
-          >
-            Закрыть
-          </BButton>
-
-          <BButton
-            variant="primary"
-            class="rounded-pill px-4 fw-bold shadow-sm"
-            @click="exportSeatingToPDF(activeSeatingMeta.Date)"
-          >
-            <i-bi-file-pdf class="me-2" /> Скачать PDF
-          </BButton>
-        </div>
-      </div>
-    </BModal>
-  </BApp>
-</template>
-
 <script setup>
+/*
+ * Copyright (C) 2026 Прокофьев Даниил <danieldzen@yandex.ru>
+ * Лицензировано под GNU Affero General Public License v3.0
+ * Часть проекта генератора рассадок
+ */
 import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import useClasses from "./composables/useClasses.js";
@@ -423,6 +251,182 @@ const endPan = () => (isPanning.value = false);
 
 onMounted(loadClasses);
 </script>
+<template>
+  <BApp>
+    <div v-if="cls" class="container py-5 min-vh-100">
+      <div class="d-flex align-items-center justify-content-between mb-5">
+        <div class="d-flex align-items-center">
+          <BButton
+            :to="`/`"
+            variant="light"
+            class="me-4 border shadow-sm hover-lift"
+          >
+            <i-bi-arrow-left />
+          </BButton>
+          <div>
+            <h2 class="fw-bold mb-0 text-dark">Архив рассадок</h2>
+            <p class="text-muted mb-0 small">
+              {{ cls.name }} • {{ cls.students?.length }} учеников
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="cls.seatings?.length" class="row g-4">
+        <div
+          v-for="(seating, index) in [...cls.seatings].reverse()"
+          :key="seating.Date"
+          class="col-md-6 col-lg-4 fade-in-up"
+          :style="{ animationDelay: index * 0.05 + 's' }"
+        >
+          <div class="card h-100 border-0 shadow-sm history-card">
+            <div class="card-body p-4">
+              <div
+                class="d-flex justify-content-between align-items-start mb-3"
+              >
+                <div class="variant-badge">
+                  Вариант №{{ cls.seatings.length - index }}
+                </div>
+                <BButton
+                  variant="link"
+                  class="p-0 text-danger opacity-50 hover-opacity-100"
+                  @click="confirmDelete(seating.Date)"
+                >
+                  <i-bi-trash />
+                </BButton>
+              </div>
+
+              <div class="mb-4">
+                <div class="d-flex align-items-center text-dark fw-medium">
+                  <i-bi-calendar3 class="me-2 text-primary" />
+                  {{ formatFullDate(seating.Date).date }}
+                </div>
+                <div class="small text-muted ms-4">
+                  {{ formatFullDate(seating.Date).time }}
+                </div>
+              </div>
+
+              <BButton
+                variant="primary"
+                class="w-100 rounded-3 py-2 fw-bold d-flex align-items-center justify-content-center btn-view"
+                @click="openPreview(seating)"
+              >
+                Посмотреть схему
+                <i-bi-eye class="ms-2" />
+              </BButton>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="text-center py-5">
+        <div class="empty-state-icon mb-3">
+          <i-bi-folder2-open class="display-1 text-light" />
+        </div>
+        <h4 class="text-muted">История пуста</h4>
+        <p class="text-secondary">
+          Здесь будут появляться сохраненные варианты рассадки.
+        </p>
+      </div>
+    </div>
+
+    <BModal
+      v-model="showModal"
+      size="xl"
+      centered
+      :hide-footer="true"
+      footer-class="d-none"
+      body-class="p-0 overflow-hidden"
+      content-class="border-0 shadow-2xl glass-modal"
+    >
+      <template #modal-header>
+        <div
+          class="d-flex align-items-center justify-content-between w-100 px-2"
+        >
+          <div>
+            <h5 class="modal-title fw-bold mb-0">{{ selectedSeatingDate }}</h5>
+            <span class="badge bg-primary-subtle text-primary small"
+              >Просмотр архива</span
+            >
+          </div>
+
+          <div class="canvas-tools">
+            <div class="btn-group bg-white p-1 rounded-3 border shadow-sm">
+              <button
+                class="btn btn-sm btn-light-hover rounded-2 px-3"
+                @click="zoomOut"
+              >
+                -
+              </button>
+              <div
+                class="d-flex align-items-center px-3 fw-bold text-primary small border-start border-end"
+              >
+                {{ Math.round(scale * 100) }}%
+              </div>
+              <button
+                class="btn btn-sm btn-light-hover rounded-2 px-3"
+                @click="zoomIn"
+              >
+                +
+              </button>
+              <button
+                class="btn btn-sm btn-light-hover rounded-2 ms-1 text-muted"
+                @click="resetView"
+              >
+                <i-bi-arrow-counterclockwise />
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <div class="d-flex flex-column bg-white">
+        <div class="canvas-viewport">
+          <div
+            class="grab-surface"
+            @mousedown.prevent="startPan"
+            @mousemove="panning"
+            @mouseup="endPan"
+            @mouseleave="endPan"
+            @wheel.prevent="onWheel"
+          >
+            <div class="canvas-content" :style="canvasStyle">
+              <ClassMap
+                v-if="activeSeatingData"
+                :config="historyConfig"
+                :seating="activeSeatingData"
+              />
+            </div>
+          </div>
+          <div class="canvas-hint">
+            <i-bi-arrows-move class="me-2" />
+            <span>Левая клавиша мыши для перемещения • Колесо для зума</span>
+          </div>
+        </div>
+
+        <div
+          class="px-4 py-3 bg-white border-top d-flex justify-content-between align-items-center"
+        >
+          <BButton
+            variant="light"
+            class="rounded-pill px-4 border"
+            @click="showModal = false"
+          >
+            Закрыть
+          </BButton>
+
+          <BButton
+            variant="primary"
+            class="rounded-pill px-4 fw-bold shadow-sm"
+            @click="exportSeatingToPDF(activeSeatingMeta.Date)"
+          >
+            <i-bi-file-pdf class="me-2" /> Скачать PDF
+          </BButton>
+        </div>
+      </div>
+    </BModal>
+  </BApp>
+</template>
 
 <style scoped>
 .history-card {

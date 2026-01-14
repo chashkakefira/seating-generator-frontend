@@ -1,3 +1,35 @@
+<script>
+/*
+ * Copyright (C) 2026 Прокофьев Даниил <danieldzen@yandex.ru>
+ * Лицензировано под GNU Affero General Public License v3.0
+ * Часть проекта генератора рассадок
+ */
+import { computed, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import useClasses from "./composables/useClasses.js";
+
+const route = useRoute();
+const router = useRouter();
+const { classes, loadClasses, saveClasses, hasErrors } = useClasses();
+
+onMounted(() => {
+  loadClasses();
+});
+
+const activeClass = computed(() => {
+  const id = route.params.id;
+  if (!id) return null;
+  return classes.value.find((c) => String(c.id) === String(id));
+});
+
+const handleSeating = () => {
+  saveClasses();
+  const id = route.params.id;
+  if (!hasErrors.value && id) {
+    router.push(`/generate/${id}`);
+  }
+};
+</script>
 <template>
   <div id="app" class="d-flex flex-column vh-100">
     <nav
@@ -61,34 +93,6 @@
     </main>
   </div>
 </template>
-
-<script setup>
-import { computed, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import useClasses from "./composables/useClasses.js";
-
-const route = useRoute();
-const router = useRouter();
-const { classes, loadClasses, saveClasses, hasErrors } = useClasses();
-
-onMounted(() => {
-  loadClasses();
-});
-
-const activeClass = computed(() => {
-  const id = route.params.id;
-  if (!id) return null;
-  return classes.value.find((c) => String(c.id) === String(id));
-});
-
-const handleSeating = () => {
-  saveClasses();
-  const id = route.params.id;
-  if (!hasErrors.value && id) {
-    router.push(`/generate/${id}`);
-  }
-};
-</script>
 
 <style>
 .navbar-brand {

@@ -1,3 +1,6 @@
+# Copyright (C) 2026 Прокофьев Даниил <danieldzen@yandex.ru>
+# Лицензировано под GNU Affero General Public License v3.0
+# Часть проекта генератора рассадок
 FROM node:20-alpine AS build-stage
 WORKDIR /app
 COPY package*.json ./

@@ -2,6 +2,8 @@
   "name": "frontend",
   "private": true,
   "version": "0.0.0",
+  "license": "AGPL-3.0-only",
+  "author": "Прокофьев Даниил <danieldzen@yandex.ru>",
   "type": "module",
   "scripts": {
     "dev": "vite",

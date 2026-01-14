@@ -1,0 +1,15 @@
+Генератор школьных рассадок
+Copyright (C) 2026 Прокофьев Даниил <danieldzen@yandex.ru>
+
+Этот проект лицензирован под GNU Affero General Public License v3.0.
+
+Данное программное обеспечение разработано с использованием следующих 
+сторонних компонентов с открытым исходным кодом:
+
+1. Vue.js (MIT License) - https://vuejs.org/
+2. Bootstrap (MIT License) - https://bootstrap-vue-next.github.io/bootstrap-vue-next/
+3. Axios, jspdf, vuedraggable (MIT License)
+4. Caddy Server (Apache License 2.0) - https://caddyserver.com/
+
+Полный список зависимостей и их лицензий доступен в файле
+package.json
