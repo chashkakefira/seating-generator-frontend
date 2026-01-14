@@ -1,7 +1,7 @@
-Генератор школьных рассадок
+Генератор школьных рассадок - frontend
 Copyright (C) 2026 Прокофьев Даниил <danieldzen@yandex.ru>
-
-Этот проект лицензирован под GNU Affero General Public License v3.0.
+Лицензировано под GNU Affero General Public License v3.0.
+Часть проекта генератора рассадок
 
 Данное программное обеспечение разработано с использованием следующих 
 сторонних компонентов с открытым исходным кодом:
@@ -10,6 +10,9 @@ Copyright (C) 2026 Прокофьев Даниил <danieldzen@yandex.ru>
 2. Bootstrap (MIT License) - https://bootstrap-vue-next.github.io/bootstrap-vue-next/
 3. Axios, jspdf, vuedraggable (MIT License)
 4. Caddy Server (Apache License 2.0) - https://caddyserver.com/
+
+Использован шрифт Roboto, лицензированный под Apache License ver. 2. Ознакомиться с 
+лицензией можно в public/fonts/ROBOTO-LICENSE.txt
 
 Полный список зависимостей и их лицензий доступен в файле
 package.json
