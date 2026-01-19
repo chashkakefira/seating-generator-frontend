@@ -43,7 +43,7 @@ const handleSeating = () => {
 
           <div class="border-start border-white border-opacity-25 ps-2 ms-1">
             <a
-              href="https://github.com/chashkakefira/seating-generator"
+              href="https://github.com/dvprokofiev/seating-generator"
               target="_blank"
               class="text-white-50 text-decoration-none d-flex align-items-center"
               style="font-size: 0.7rem"

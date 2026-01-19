@@ -1,5 +1,5 @@
 # Генератор рассадок - Frontend
-[![Main Repo](https://img.shields.io/badge/Main_Project-Meta--Repo-orange?logo=github)](https://github.com/chashkakefira/seating-generator)
+[![Main Repo](https://img.shields.io/badge/Main_Project-Meta--Repo-orange?logo=github)](https://github.com/dvprokofiev/seating-generator)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4fc08d?logo=vue.js)](https://vuejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.x-646cff?logo=vite)](https://vitejs.dev/)
@@ -9,14 +9,14 @@
 
 > [!IMPORTANT]
 > Данный репозиторий является частью комплексной системы. 
-> Основная документация, инструкции по развертыванию через Docker и ссылка на репозиторий с бэкендом находятся в **[мета-репозитории](https://github.com/chashkakefira/seating-generator)**.
+> Основная документация, инструкции по развертыванию через Docker и ссылка на репозиторий с бэкендом находятся в **[мета-репозитории](https://github.com/dvprokofiev/seating-generator)**.
 
 <img width="1919" height="953" alt="image" src="https://github.com/user-attachments/assets/162a9e90-0fda-4639-a91e-8e5b316ec457" />
 
 ## Локальная разработка
 0. Склонируйте репозиторий:
  ```bash 
- git clone https://github.com/chashkakefira/seating-generator-frontend/ && cd seating-generator-frontend
+ git clone https://github.com/dvprokofiev/seating-generator-frontend/ && cd seating-generator-frontend
  ```
 1. Установите зависимости:
  ```bash
@@ -41,6 +41,6 @@ npm run build
 * **HTTP-клиент:** [Axios](https://axios-http.com/)
 
 # ⚖️ Лицензия
-Код в репозитории является частью проекта "Генератор рассадок" и лицензирован под **GNU Affero General Public License v3.0 (AGPLv3)**. Подробности см. в файлах [LICENSE](./LICENSE) и [NOTICE](./NOTICE) данного репозитория и в [мета-репозитории](https://github.com/chashkakefira/seating-generator).
+Код в репозитории является частью проекта "Генератор рассадок" и лицензирован под **GNU Affero General Public License v3.0 (AGPLv3)**. Подробности см. в файлах [LICENSE](./LICENSE) и [NOTICE](./NOTICE) данного репозитория и в [мета-репозитории](https://github.com/dvprokofiev/seating-generator).
 
 Copyright (C) 2026 Прокофьев Даниил <[danieldzen@yandex.ru](mailto:danieldzen@yandex.ru)>
