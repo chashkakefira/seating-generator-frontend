@@ -8,9 +8,6 @@ import axios from 'axios'
 
 export function useSeating() {
   const request = ref({
-    popSize: 1500,
-    generations: 2000,
-    crossOverChance: 0.8,
     students: [],
     preferences: [],
     forbidden: [],
@@ -151,9 +148,6 @@ export function useSeating() {
         columns: request.value.classConfig.deskType === 'double' ? request.value.classConfig.columns * 2 : request.value.classConfig.columns,
         deskType: request.value.classConfig.deskType,
       },
-      popSize: request.value.popSize,
-      generations: request.value.generations,
-      crossOverChance: request.value.crossOverChance,
       PriorityWeights: {
         Medical: priorities.value.medical,
         Friends: priorities.value.friends,
